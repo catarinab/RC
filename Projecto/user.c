@@ -10,12 +10,20 @@
 #include <ctype.h>
 #define MAX_INPUT_SIZE 128
 
+typedef struct user {
+	int logged;
+	char uid[5];
+	char pwd[8];
+} user;
+
 int udpSocket, tcpSocket, errcode, errno;
 struct addrinfo hints, *udpRes, *tcpRes;
 ssize_t n;
 socklen_t addrlen;
 struct sockaddr_in addr;
+
 char buffer[MAX_INPUT_SIZE], port[6], ip[MAX_INPUT_SIZE]; //nosso pc: localhost;
+user loggedUser; 
 
 void parseArgs(int argc, char *argv[]) {
 	if(argc == 1) {
@@ -72,129 +80,200 @@ void deleteSockets() {
 	close(tcpSocket);
 }
 
-void concatenateArgs(char *final, int numArgs, char args[2][MAX_INPUT_SIZE]) {
-	for(int i = 0; i < numArgs; i++){
+void concatenateArgs(char *final, char args[][MAX_INPUT_SIZE], int argsNumber) {
+	for(int i = 0; i < argsNumber; i++){
 		strcat(final, " ");
 		strcat(final, args[i]);
 	}
 	strcat(final, "\n");
 }
 
-void reg(char *op, char args[2][MAX_INPUT_SIZE]) {
+void reg() {
 	int numTokens, errFlag = 0;
-	char finalCommand[3*MAX_INPUT_SIZE], command_args[MAX_INPUT_SIZE] = "";
-	concatenateArgs(command_args, 2, args);
-	strcpy(finalCommand, "REG");
-	strcat(finalCommand, command_args);
+	char args[2][MAX_INPUT_SIZE], command[MAX_INPUT_SIZE] = "REG", argsCommand[MAX_INPUT_SIZE] = "";
 
-	for(int i = 0; i < 5; i ++){
+	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+
+	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
+	for (int i = 0; i < 5; i ++){
 		if(isalpha(args[0][i]) != 0){
-			printf("UID must contain numbers only.\n");
+			fprintf(stderr, "error: UIDSIZE] must contain numbers only\n");
 			errFlag = 1;
 			break;
 		}
 	}
-	if(strlen(args[0]) != 5){
-		printf("UID must have 5 numbers.\n");
+	if (strlen(args[0]) != 5){
+		fprintf(stderr, "error: UID must have 5 numbers\n");
 		errFlag = 1;
 	}
-	if(strlen(args[1]) != 8){
-		printf("Password must have 8 characters.\n");
+	if (strlen(args[1]) != 8){
+		fprintf(stderr, "error: Password must have 8 characters\n");
 		errFlag = 1;
 	}
-
-	for(int i = 0; i < 8; i ++){
+	for (int i = 0; i < 8; i ++){
 		if(isalpha(args[1][i]) != 0 && isdigit(args[1][i]) != 0) {
-			printf("Password must contain alphanumeric characters only.\n");
+			fprintf(stderr, "error: Password must contain alphanumeric characters only\n");
 			errFlag = 1;
 			break;
 		}
 	}
-
 	if(errFlag) return;
 
-	n = sendto(udpSocket, finalCommand, strlen(finalCommand), 0, udpRes->ai_addr, udpRes->ai_addrlen);
+	concatenateArgs(argsCommand, args, 2);
+	strcat(command, argsCommand);
+
+	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if(n == -1) exit(1);
 
 	addrlen = sizeof(addr);
 	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
 	if(n == -1) exit(1);
 
-	numTokens = sscanf(buffer, "%s %s", op, args[0]);
-	if(numTokens != 2 || strcmp(op, "RRG") != 0){
-		fprintf(stdout, "Server Error.\n");
+	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	if(numTokens != 2 || strcmp(args[0], "RRG") != 0){
+		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
 	} 
-	else if(strcmp(args[0], "OK") == 0) fprintf(stdout, "User Successfully Registered.\n");
-	else if(strcmp(args[0], "DUP") == 0) fprintf(stdout, "User Already Registered.\n");
-	else if(strcmp(args[0], "NOK") == 0) fprintf(stdout, "User Not Registered.\n");
+	else if(strcmp(args[1], "OK") == 0) fprintf(stdout, "User Successfully Registered.\n");
+	else if(strcmp(args[1], "DUP") == 0) fprintf(stdout, "User Already Registered.\n");
+	else if(strcmp(args[1], "NOK") == 0) fprintf(stdout, "User Not Registered.\n");
 	else exit(1);
 }
 
-void unr(char *op, char args[2][MAX_INPUT_SIZE]) {
+void unr() {
 	int numTokens, errFlag = 0;
-	char finalCommand[3*MAX_INPUT_SIZE], command_args[MAX_INPUT_SIZE] = "";
-	concatenateArgs(command_args, 2, args);
-	strcpy(finalCommand, "UNR");
-	strcat(finalCommand, command_args);
+	char args[2][MAX_INPUT_SIZE], command[MAX_INPUT_SIZE] = "UNR", argsCommand[MAX_INPUT_SIZE] = "";
 
-	for(int i = 0; i < 5; i ++){
+	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+
+	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
+	for (int i = 0; i < 5; i ++){
 		if(isalpha(args[0][i]) != 0){
-			printf("UID must contain numbers only.\n");
+			fprintf(stderr, "error: UID must contain numbers only\n");
 			errFlag = 1;
 			break;
 		}
 	}
-	if(strlen(args[0]) != 5){
-		printf("UID must have 5 numbers.\n");
+	if (strlen(args[0]) != 5){
+		fprintf(stderr, "error: UID must have 5 numbers\n");
 		errFlag = 1;
 	}
-	if(strlen(args[1]) != 8){
-		printf("Password must have 8 characters.\n");
+	if (strlen(args[1]) != 8){
+		fprintf(stderr, "error: Password must have 8 characters\n");
 		errFlag = 1;
 	}
-
-	for(int i = 0; i < 8; i ++){
+	for (int i = 0; i < 8; i ++){
 		if(isalpha(args[1][i]) != 0 && isdigit(args[1][i]) != 0) {
-			printf("Password must contain alphanumeric characters only.\n");
+			fprintf(stderr, "error: Password must contain alphanumeric characters only\n");
 			errFlag = 1;
 			break;
 		}
 	}
-
 	if(errFlag) return;
 
-	n = sendto(udpSocket, finalCommand, strlen(finalCommand), 0, udpRes->ai_addr, udpRes->ai_addrlen);
+	concatenateArgs(argsCommand, args, 2);
+	strcat(command, argsCommand);
+
+	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if(n == -1) exit(1);
 
 	addrlen = sizeof(addr);
 	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
 	if(n == -1) exit(1);
 
-	numTokens = sscanf(buffer, "%s %s", op, args[0]);
-	if(numTokens != 2 || strcmp(op, "RUN") != 0){
-		fprintf(stdout, "Server Error.\n");
+	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	if(numTokens != 2 || strcmp(args[0], "RUN") != 0){
+		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
 	} 
-	else if(strcmp(args[0], "OK") == 0) fprintf(stdout, "User Successfully Unregistered.\n");
-	else if(strcmp(args[0], "NOK") == 0) fprintf(stdout, "User Not Unregistered.\n");
+	else if(strcmp(args[1], "OK") == 0) fprintf(stdout, "User Successfully Unregistered.\n");
+	else if(strcmp(args[1], "NOK") == 0) fprintf(stdout, "User Not Unregistered.\n");
+	else exit(1);
+}
+
+void login() {
+	int numTokens, errFlag = 0;
+	char args[2][MAX_INPUT_SIZE], command[MAX_INPUT_SIZE] = "LOG", argsCommand[MAX_INPUT_SIZE] = "";
+
+	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+
+	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
+	for (int i = 0; i < 5; i ++){
+		if(isalpha(args[0][i]) != 0){
+			fprintf(stderr, "error: UID must contain numbers only\n");
+			errFlag = 1;
+			break;
+		}
+	}
+	if (strlen(args[0]) != 5){
+		fprintf(stderr, "error: UID must have 5 numbers\n");
+		errFlag = 1;
+	}
+	if (strlen(args[1]) != 8){
+		fprintf(stderr, "error: Password must have 8 characters\n");
+		errFlag = 1;
+	}
+	for (int i = 0; i < 8; i ++){
+		if(isalpha(args[1][i]) != 0 && isdigit(args[1][i]) != 0) {
+			fprintf(stderr, "error: Password must contain alphanumeric characters only\n");
+			errFlag = 1;
+			break;
+		}
+	}
+	if(errFlag) return;
+
+	strcpy(loggedUser.uid, args[0]);
+	strcpy(loggedUser.pwd, args[1]);
+
+	concatenateArgs(argsCommand, args, 2);
+	strcat(command, argsCommand);
+
+	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
+	if(n == -1) exit(1);
+
+	addrlen = sizeof(addr);
+	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
+	if(n == -1) exit(1);
+
+	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	if(numTokens != 2 || strcmp(args[0], "RLO") != 0){
+		fprintf(stderr, "error: Server Error.\n");
+		exit(1);
+	} 
+	else if(strcmp(args[1], "OK") == 0){
+		fprintf(stdout, "User Successfully logged in.\n");
+		loggedUser.logged = 1;
+	}
+	else if(strcmp(args[1], "NOK") == 0) fprintf(stdout, "User not logged in.\n");
 	else exit(1);
 }
 
 void readCommands() {
+	loggedUser.logged = 0;
 	while (fgets(buffer, sizeof(buffer)/sizeof(char), stdin)) {
-		char op[MAX_INPUT_SIZE], args[2][MAX_INPUT_SIZE];
+		char op[MAX_INPUT_SIZE];
 
-        int numTokens = sscanf(buffer, "%s %s %s", op, args[0], args[1]);
+        int numTokens = sscanf(buffer, "%s %[^\n]", op, buffer);
 
-		if(strcmp(op, "quit") == 0) exit(1);
         if (numTokens < 1) fprintf(stderr, "error: incorrect command line arguments\n");
 		else {
 			if(strcmp(op, "reg") == 0) {
-				reg(op, args);
+				reg();
 			}
 			else if(strcmp(op, "unr") == 0 || strcmp(op, "unregister") == 0) {
-				unr(op, args);
+				unr();
+			}
+			else if(strcmp(op, "login") == 0) {
+				login();
+			}
+			else if(strcmp(op, "logout") == 0) {
+				//logout();
+			}
+			else if(strcmp(op, "su") == 0 || strcmp(op, "showuid") == 0) {
+				//su();
+			}
+			else if(strcmp(op, "exit") == 0) {
+				//exit();
 			}
 		}
 	}
