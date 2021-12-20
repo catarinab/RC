@@ -12,8 +12,8 @@
 
 typedef struct user {
 	int logged;
-	char uid[5];
-	char pwd[8];
+	char uid[6];
+	char pwd[9];
 } user;
 
 int udpSocket, tcpSocket, errcode, errno;
@@ -134,9 +134,9 @@ void reg() {
 		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
 	} 
-	else if(strcmp(args[1], "OK") == 0) fprintf(stdout, "User Successfully Registered.\n");
-	else if(strcmp(args[1], "DUP") == 0) fprintf(stdout, "User Already Registered.\n");
-	else if(strcmp(args[1], "NOK") == 0) fprintf(stdout, "User Not Registered.\n");
+	else if(strcmp(args[1], "OK") == 0) fprintf(stdout, "User successfully registered.\n");
+	else if(strcmp(args[1], "DUP") == 0) fprintf(stdout, "User already registered.\n");
+	else if(strcmp(args[1], "NOK") == 0) fprintf(stdout, "User not registered.\n");
 	else exit(1);
 }
 
@@ -186,9 +186,15 @@ void unr() {
 		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
 	} 
-	else if(strcmp(args[1], "OK") == 0) fprintf(stdout, "User Successfully Unregistered.\n");
-	else if(strcmp(args[1], "NOK") == 0) fprintf(stdout, "User Not Unregistered.\n");
+	else if(strcmp(args[1], "OK") == 0) fprintf(stdout, "User successfully unregistered.\n");
+	else if(strcmp(args[1], "NOK") == 0) fprintf(stdout, "User not unregistered.\n");
 	else exit(1);
+}
+
+void resetUser() {
+	loggedUser.logged = 0;
+	strcpy(loggedUser.uid, "");
+	strcpy(loggedUser.pwd, "");
 }
 
 void login() {
@@ -240,16 +246,60 @@ void login() {
 		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
 	} 
-	else if(strcmp(args[1], "OK") == 0){
-		fprintf(stdout, "User Successfully logged in.\n");
+	else if(strcmp(args[1], "OK") == 0) {
+		fprintf(stdout, "User successfully logged in.\n");
 		loggedUser.logged = 1;
 	}
-	else if(strcmp(args[1], "NOK") == 0) fprintf(stdout, "User not logged in.\n");
+	else if(strcmp(args[1], "NOK") == 0) {
+		fprintf(stdout, "User not logged in.\n");
+		resetUser();
+	}
 	else exit(1);
 }
 
+void logout() {
+	int numTokens;
+	char args[2][MAX_INPUT_SIZE], command[MAX_INPUT_SIZE] = "OUT", argsCommand[MAX_INPUT_SIZE] = "";
+
+	strcpy(args[0], loggedUser.uid);
+	strcpy(args[1], loggedUser.pwd);
+	concatenateArgs(argsCommand, args, 2);
+	strcat(command, argsCommand);
+
+	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
+	if(n == -1) exit(1);
+
+	addrlen = sizeof(addr);
+	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
+	if(n == -1) exit(1);
+
+	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	if(numTokens != 2 || strcmp(args[0], "ROU") != 0){
+		fprintf(stderr, "error: Server Error.\n");
+		exit(1);
+	} 
+	else if(strcmp(args[1], "OK") == 0) {
+		fprintf(stdout, "User successfully logged out.\n");
+		resetUser();
+	}
+	else if(strcmp(args[1], "NOK") == 0) fprintf(stdout, "User not logged out.\n");
+	else exit(1);
+}
+
+void su() {
+	if (loggedUser.logged) fprintf(stdout, "UID of logged user: %s.\n", loggedUser.uid);
+	else fprintf(stdout, "No logged user.\n");
+}
+
+void exit() {
+	fprintf(stdout, "Terminating user application.\n");
+	resetUser();
+	deleteSockets();
+}
+
 void readCommands() {
-	loggedUser.logged = 0;
+	resetUser();
+	
 	while (fgets(buffer, sizeof(buffer)/sizeof(char), stdin)) {
 		char op[MAX_INPUT_SIZE];
 
@@ -267,13 +317,13 @@ void readCommands() {
 				login();
 			}
 			else if(strcmp(op, "logout") == 0) {
-				//logout();
+				logout();
 			}
 			else if(strcmp(op, "su") == 0 || strcmp(op, "showuid") == 0) {
-				//su();
+				su();
 			}
 			else if(strcmp(op, "exit") == 0) {
-				//exit();
+				return;
 			}
 		}
 	}
@@ -283,7 +333,7 @@ int main(int argc, char *argv[]) {
 	parseArgs(argc, argv);
 	createSockets();
 	readCommands();
-	deleteSockets();
+	exit();
 
 	return 0;
 }
