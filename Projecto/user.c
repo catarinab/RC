@@ -193,7 +193,7 @@ void readCommands() {
 			if(strcmp(op, "reg") == 0) {
 				reg(op, args);
 			}
-			if(strcmp(op, "unr") == 0 || strcmp(op, "unregister") == 0) {
+			else if(strcmp(op, "unr") == 0 || strcmp(op, "unregister") == 0) {
 				unr(op, args);
 			}
 		}
