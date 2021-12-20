@@ -88,9 +88,8 @@ int main(int argc, char *argv[]) {
 			}
 			strcat(command, "\n");
 
-			char finalCommand[MAX_INPUT_SIZE];
+			char finalCommand[3*MAX_INPUT_SIZE] = "REG";
 			if(strcmp(op, "reg") == 0) {
-				strcpy(finalCommand, "REG");
 				strcat(finalCommand, command);
 
 				for(int i = 0; i < 5; i ++){
@@ -118,16 +117,13 @@ int main(int argc, char *argv[]) {
 				if(n == -1) exit(1);
 
 				numTokens = sscanf(buffer, "%s %s", op, args[0]);
-				if(numTokens != 2 || strcmp(op, "RRG") != 0) exit(1);
-				else if(strcmp(args[0], "OK") == 0){
-					fprintf(stdout, "User Successfully Registered.\n");
-				}
-				else if(strcmp(args[0], "DUP") == 0){
-					fprintf(stdout, "User Already Registered.\n");
-				}
-				else if(strcmp(args[0], "NOK") == 0){
-					fprintf(stdout, "User Not Registered.\n");
-				}
+				if(numTokens != 2 || strcmp(op, "RRG") != 0){
+					fprintf(stdout, "Error.\n");
+					exit(1);
+				} 
+				else if(strcmp(args[0], "OK") == 0) fprintf(stdout, "User Successfully Registered.\n");
+				else if(strcmp(args[0], "DUP") == 0) fprintf(stdout, "User Already Registered.\n");
+				else if(strcmp(args[0], "NOK") == 0) fprintf(stdout, "User Not Registered.\n");
 				else exit(1);
 			}
 		}
