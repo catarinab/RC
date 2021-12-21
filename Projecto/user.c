@@ -16,6 +16,33 @@ typedef struct user {
 	char pwd[9];
 } user;
 
+int verifyUserInfo(char uid[], char pwd[]) {
+	int errFlag = 0;
+	for (int i = 0; i < strlen(uid); i ++){
+		if(isalpha(uid[i]) != 0){
+			fprintf(stderr, "error: UID must contain numbers only\n");
+			errFlag = 1;
+			break;
+		}
+	}
+	if (strlen(uid) != 5){
+		fprintf(stderr, "error: UID must have 5 numbers\n");
+		errFlag = 1;
+	}
+	if (strlen(pwd) != 8){
+		fprintf(stderr, "error: Password must have 8 characters\n");
+		errFlag = 1;
+	}
+	for (int i = 0; i < strlen(pwd); i ++){
+		if(isalnum(pwd) != 1) {
+			fprintf(stderr, "error: Password must contain alphanumeric characters only\n");
+			errFlag = 1;
+			break;
+		}
+	}
+	return errFlag;
+}
+
 int udpSocket, tcpSocket, errcode, errno;
 struct addrinfo hints, *udpRes, *tcpRes;
 ssize_t n;
@@ -95,29 +122,7 @@ void reg() {
 	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
 
 	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
-	for (int i = 0; i < 5; i ++){
-		if(isalpha(args[0][i]) != 0){
-			fprintf(stderr, "error: UIDSIZE] must contain numbers only\n");
-			errFlag = 1;
-			break;
-		}
-	}
-	if (strlen(args[0]) != 5){
-		fprintf(stderr, "error: UID must have 5 numbers\n");
-		errFlag = 1;
-	}
-	if (strlen(args[1]) != 8){
-		fprintf(stderr, "error: Password must have 8 characters\n");
-		errFlag = 1;
-	}
-	for (int i = 0; i < 8; i ++){
-		if(isalpha(args[1][i]) != 0 && isdigit(args[1][i]) != 0) {
-			fprintf(stderr, "error: Password must contain alphanumeric characters only\n");
-			errFlag = 1;
-			break;
-		}
-	}
-	if(errFlag) return;
+	if(verifyUserInfo(args[0], args[1])) return;
 
 	concatenateArgs(argsCommand, args, 2);
 	strcat(command, argsCommand);
@@ -147,29 +152,7 @@ void unr() {
 	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
 
 	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
-	for (int i = 0; i < 5; i ++){
-		if(isalpha(args[0][i]) != 0){
-			fprintf(stderr, "error: UID must contain numbers only\n");
-			errFlag = 1;
-			break;
-		}
-	}
-	if (strlen(args[0]) != 5){
-		fprintf(stderr, "error: UID must have 5 numbers\n");
-		errFlag = 1;
-	}
-	if (strlen(args[1]) != 8){
-		fprintf(stderr, "error: Password must have 8 characters\n");
-		errFlag = 1;
-	}
-	for (int i = 0; i < 8; i ++){
-		if(isalpha(args[1][i]) != 0 && isdigit(args[1][i]) != 0) {
-			fprintf(stderr, "error: Password must contain alphanumeric characters only\n");
-			errFlag = 1;
-			break;
-		}
-	}
-	if(errFlag) return;
+	if(verifyUserInfo(args[0], args[1])) return;
 
 	concatenateArgs(argsCommand, args, 2);
 	strcat(command, argsCommand);
@@ -204,29 +187,7 @@ void login() {
 	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
 
 	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
-	for (int i = 0; i < 5; i ++){
-		if(isalpha(args[0][i]) != 0){
-			fprintf(stderr, "error: UID must contain numbers only\n");
-			errFlag = 1;
-			break;
-		}
-	}
-	if (strlen(args[0]) != 5){
-		fprintf(stderr, "error: UID must have 5 numbers\n");
-		errFlag = 1;
-	}
-	if (strlen(args[1]) != 8){
-		fprintf(stderr, "error: Password must have 8 characters\n");
-		errFlag = 1;
-	}
-	for (int i = 0; i < 8; i ++){
-		if(isalpha(args[1][i]) != 0 && isdigit(args[1][i]) != 0) {
-			fprintf(stderr, "error: Password must contain alphanumeric characters only\n");
-			errFlag = 1;
-			break;
-		}
-	}
-	if(errFlag) return;
+	if(verifyUserInfo(args[0], args[1])) return;
 
 	strcpy(loggedUser.uid, args[0]);
 	strcpy(loggedUser.pwd, args[1]);
@@ -291,7 +252,7 @@ void su() {
 	else fprintf(stdout, "No logged user.\n");
 }
 
-void exit() {
+void exitClientSession() {
 	fprintf(stdout, "Terminating user application.\n");
 	resetUser();
 	deleteSockets();
@@ -333,7 +294,7 @@ int main(int argc, char *argv[]) {
 	parseArgs(argc, argv);
 	createSockets();
 	readCommands();
-	exit();
+	exitClientSession();
 
 	return 0;
 }
