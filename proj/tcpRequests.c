@@ -33,7 +33,6 @@ void sendTCPMessage(int socket, char *ptr, int nleft) {
 void receiveTCPMessage(int socket, char *ptr, int nleft) {
 	while (nleft > 0) {
 		n = read(socket, ptr, nleft);
-		printf("%s", buffer);
 		if (n == -1) exit(1);
 		else if (n == 0) break;
 		nleft -= n;
@@ -67,97 +66,64 @@ void ul() {
 		if(numTokens == 3) fprintf(stdout, "No Users subscribed to group %s.\n", groupName);
 		else fprintf(stdout, "Users subscribed to group %s:%s\n", groupName, responseBuffer);
 	} 
-	else fprintf(stderr, "error: Server Error.\n");
+	else exit(1);
 }
 
 void post() {
-	loggedUser.logged = 1;
-	strcpy(loggedUser.uid, "93230");
-	selectedGroup.selected = 1;
-	strcpy(selectedGroup.gid, "28");
-	int numTokens, lenMessage, nleft;
+	int numTokens, lenMessage;
 	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "PST ", *len;
 
-	if (!loggedUser.logged) {
-		fprintf(stdout, "warning: No user logged.\n");
-		return;
-	}
-	if (!selectedGroup.selected) {
-		fprintf(stdout, "warning: No group selected.\n");
-		return;
-	}
+	if (!(verifySession())) return;
 
 	numTokens = sscanf(buffer, "\"%[^\"]\" %s", buffer, args[0]);
-	if (numTokens < 1) fprintf(stderr, "error: incorrect command line arguments\n");
+	if (numTokens < 1) {
+		fprintf(stderr, "error: Incorrect command line arguments\n");
+		return;
+	}
 	createTCPSocket();
 
-	strcat(command, loggedUser.uid);
-	strcat(command, " ");
-	strcat(command, selectedGroup.gid);
-	strcat(command, " ");
     asprintf(&len, "%d", (lenMessage = strlen(buffer)));
-    strcat(command, len);
+	strcat(strcat(strcat(strcat(strcat(strcat(command, loggedUser.uid), " "), selectedGroup.gid), " "), len), " ");
 	free(len);
-	strcat(command, " ");
-
 	sendTCPMessage(tcpSocket, command, strlen(command));
 	sendTCPMessage(tcpSocket, buffer, lenMessage);
+	memset(buffer, 0, MAX_INPUT_SIZE);
 
 	if (numTokens == 2) {
-		int errFlag = 0, lenFname;
-		for (int i = 0; i < (lenFname = strlen(args[0])) - 5; i ++) {
-			if (isalnum(args[0][i]) == 0 && args[0][i] != '.' && args[0][i] != '-' && args[0][i] != '_') {
-				fprintf(stderr, "error: Fname must contain alphanumeric characters only\n");
-				errFlag = 1;
-				break;
-			}
+		FILE *ptr;
+		int lenFname, lenFile;
+		
+		if (verifyAlnum(args[0], 0, (lenFname = strlen(args[0])) - 5, "Fname must contain alphanumeric characters only") || verifyAlpha(args[0], lenFname - 3, lenFname, "Fname must contain a valid extension")) {
+			close(tcpSocket);
+			return;
 		}
-		if (lenFname < 5 || args[0][lenFname - 4] != '.') {
+		else if (lenFname < 5 || args[0][lenFname - 4] != '.') {
 			fprintf(stderr, "error: Fname must contain a valid extension.\n");
-			errFlag = 1;
-		}
-		for (int i = lenFname - 3; i < lenFname; i ++){
-			if (isalpha(args[0][i]) == 0) {
-				fprintf(stderr, "error: Fname must contain a valid extension.\n");
-				errFlag = 1;
-				break;
-			}
-		}
-		if (errFlag) {
 			close(tcpSocket);
 			return;
 		}
 
-		strcpy(command, " ");
-		sendTCPMessage(tcpSocket, command, 1);
-		
-		FILE *ptr;
-		int lenFile;
-		ptr = fopen(args[0], "rb");
-
-		strcpy(command, args[0]);
-		strcat(command, " ");
+		if (!(ptr = fopen(args[0], "rb"))) {
+			fprintf(stderr, "error: File does not exist.\n");
+			close(tcpSocket);
+			return;
+		}
 		fseek(ptr, 0L, SEEK_END);
 		lenFile = ftell(ptr);
 		fseek(ptr, 0L, SEEK_SET);
 		asprintf(&len, "%d", lenFile);
-    	strcat(command, len);
+		strcat(strcat(strcat(strcat(strcpy(command, " "), args[0]), " "), len), " ");
 		free(len);
-		strcat(command, " ");
 
 		sendTCPMessage(tcpSocket, command, strlen(command));
 
-		int fileSize;
-		memset(buffer, 0, MAX_INPUT_SIZE);
-		while (0 < (fileSize = fread(buffer, sizeof(char), MAX_INPUT_SIZE, ptr))) {
-			sendTCPMessage(tcpSocket, buffer, fileSize);
+		while (0 < (lenFile = fread(buffer, sizeof(char), MAX_INPUT_SIZE, ptr))) {
+			sendTCPMessage(tcpSocket, buffer, lenFile);
 			memset(buffer, 0, MAX_INPUT_SIZE);
 		}
 	}
-	strcpy(command, "\n");
-	sendTCPMessage(tcpSocket, command, 1);
+	sendTCPMessage(tcpSocket, "\n", 1);
 
-	memset(buffer, 0, MAX_INPUT_SIZE);
 	receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
 	close(tcpSocket);
 
@@ -165,4 +131,26 @@ void post() {
 	if (numTokens < 2 || strcmp(args[0], "RPT") != 0) fprintf(stderr, "error: Server Error.\n");
 	else if (strcmp(args[1], "NOK") == 0) fprintf(stdout, "The message was not posted.\n");
 	else fprintf(stdout, "The message was successfully posted with MID %s.\n", args[1]);
+}
+
+void ret() {
+	int numTokens;
+	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "RTV ";
+
+	if (!(verifySession())) return;
+
+	numTokens = sscanf(buffer, "%s", args[0]);
+	if (numTokens < 1) {
+		fprintf(stderr, "error: Incorrect command line arguments\n");
+		return;
+	}
+	else if (strlen(args[0]) > 4) {
+		fprintf(stderr, "error: MID contains too many characters\n");
+		return;
+	}
+	else if (verifyDigit(args[0], 0, strlen(args[0]), "MID must contain numeric characters only")) return;
+	createTCPSocket();
+
+	strcat(strcat(command, args[0]), "\n");
+	sendTCPMessage(tcpSocket, command, strlen(command));
 }

@@ -184,13 +184,16 @@ void sub() {
 	int numTokens;
 	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "GSR", argsCommand[MAX_COMMAND_SIZE] = "";
 
-	if (!loggedUser.logged) fprintf(stdout, "warning: No logged user.\n");
+	if (!loggedUser.logged) {
+		fprintf(stderr, "error: No logged user.\n");
+		return;
+	}
 
 	numTokens = sscanf(buffer, "%s %s", args[1], args[2]);
 
 	if (numTokens != 2) {
 		fprintf(stderr, "error: incorrect command line arguments\n");
-		exit(1);
+		return;
 	}
 
 	if (strlen(args[1]) == 1) {
@@ -228,13 +231,16 @@ void unsub() {
 	int numTokens;
 	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "GUR", argsCommand[MAX_COMMAND_SIZE] = "";
 
-	if (!loggedUser.logged) fprintf(stdout, "warning: No logged user.\n");
+	if (!loggedUser.logged) {
+		fprintf(stderr, "error: No logged user.\n");
+		return;
+	}
 
 	numTokens = sscanf(buffer, "%s", args[1]);
 
 	if (numTokens != 1) {
-		fprintf(stderr, "error: incorrect command line arguments\n");
-		exit(1);
+		fprintf(stderr, "error: Incorrect command line arguments\n");
+		return;
 	}
 
 	if (strlen(args[1]) == 1) {
@@ -269,7 +275,10 @@ void mgl() {
 	int numTokens;
 	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "GLM", argsCommand[MAX_COMMAND_SIZE] = "";
 
-	if (!loggedUser.logged) fprintf(stdout, "warning: No logged user.\n");
+	if (!loggedUser.logged) {
+		fprintf(stderr, "error: No logged user.\n");
+		return;
+	}
 
 	strcpy(args[0], loggedUser.uid);
 	concatenateArgs(argsCommand, args, 1);
@@ -306,7 +315,7 @@ void sag() {
 
 	if (numTokens != 1) {
 		fprintf(stderr, "error: incorrect command line arguments\n");
-		exit(1);
+		return;
 	}
 	if (strlen(args[0]) > 2){
 		fprintf(stderr, "error: GID must have 1 or 2 numbers\n");

@@ -97,6 +97,9 @@ void readCommands() {
 			else if(strcmp(op, "post") == 0) {
 				post();
 			}
+			else if(strcmp(op, "r") == 0 || strcmp(op, "retrieve") == 0) {
+				ret();
+			}
 			else fprintf(stdout, "Operation not recognized.\n");
 		}
 	}
