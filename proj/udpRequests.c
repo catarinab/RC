@@ -202,8 +202,6 @@ void sub() {
 	concatenateArgs(argsCommand, args, 3);
 	strcat(command, argsCommand);
 
-	printf(command);
-
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
 

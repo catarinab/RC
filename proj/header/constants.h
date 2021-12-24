@@ -1,9 +1,10 @@
 #define MAX_INPUT_SIZE 3170
+#define MAX_MESSAGE_SIZE 240
 #define MAX_COMMAND_SIZE 128
 #define MAX_IP_SIZE 128
 #define MAX_OP_SIZE 12
 #define MAX_INFO 26
-#define MAX_USER_SUB 600035 //fazer as contas!!
+#define MAX_USER_SUB 600035 
 
 typedef struct user {
 	int logged;

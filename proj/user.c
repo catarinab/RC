@@ -94,6 +94,9 @@ void readCommands() {
 			else if(strcmp(op, "ulist") == 0 || strcmp(op, "ul") == 0) {
 				ul();
 			}
+			else if(strcmp(op, "post") == 0) {
+				post();
+			}
 			else fprintf(stdout, "Operation not recognized.\n");
 		}
 	}
