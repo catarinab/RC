@@ -134,8 +134,8 @@ void post() {
 }
 
 void ret() {
-	int numTokens;
-	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "RTV ";
+	int numTokens, n, messageSize, fileSize;
+	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "RTV ", message[MAX_MESSAGE_SIZE], data[MAX_INPUT_SIZE];
 
 	if (!(verifySession())) return;
 
@@ -151,6 +151,46 @@ void ret() {
 	else if (verifyDigit(args[0], 0, strlen(args[0]), "MID must contain numeric characters only")) return;
 	createTCPSocket();
 
-	strcat(strcat(command, args[0]), "\n");
+	if ((n = 4 - strlen(args[0])) > 0) {
+		for (int i = 4 - n; i >= 0; i--) {
+			args[0][i + n] = args[0][i];
+		}
+		for (int i = 0; i < n; i++) {
+			args[0][i] = '0';
+		}
+	}
+
+	strcat(strcat(strcat(strcat(strcat(strcat(command, loggedUser.uid), " "), selectedGroup.gid), " "), args[0]), "\n");
+	printf("%s", command);
+	memset(buffer, 0, MAX_INPUT_SIZE);
 	sendTCPMessage(tcpSocket, command, strlen(command));
+	receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
+
+	numTokens = sscanf(buffer, "%s %s %[^\0]", args[0], args[1], buffer);
+	if (numTokens < 2 || strcmp(args[0], "RRT") != 0) fprintf(stderr, "error: Server Error.\n");
+	else if (strcmp(args[1], "NOK") == 0) fprintf(stdout, "There was a problem with the retrieve request.\n");
+	else if (strcmp(args[1], "EOF") == 0) fprintf(stdout, "There are no messages available.\n");
+	else if (strcmp(args[1], "OK") == 0) {
+		/*
+		numTokens = sscanf(buffer, "%d %[^\0]", &n, buffer);
+		if (numTokens < 2) fprintf(stderr, "error: Server Error.\n");
+		for (int i = 0; i < n; i++) {
+			numTokens = sscanf(buffer, "%s %s %d %s %[^\0]", args[0], args[1], &messageSize, message, buffer);
+			if (numTokens < 4) fprintf(stderr, "error: Server Error.\n");
+			if (messageSize > strlen(message)) {
+				receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
+				numTokens = sscanf(buffer, "%s %[^\0]", &message[strlen(message)], buffer);
+			}
+			fprintf(stdout, "Message of MID %s, posted by user with UID %s: \"%s\"", args[0], args[1], message);
+			if (buffer[0] == '/') {
+				numTokens = sscanf(buffer, "%s %d %s %[^\0]", args[0], &fileSize, data, buffer);
+				while (fileSize > strlen(data)) {
+
+				}
+			}
+		}
+		*/
+		printf("%s\n", buffer);
+	} 
+	else exit(1);
 }
