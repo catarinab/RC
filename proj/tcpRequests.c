@@ -5,6 +5,11 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+struct stat st = {0};
 
 void createTCPSocket() {
 	tcpSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -121,6 +126,7 @@ void post() {
 			sendTCPMessage(tcpSocket, buffer, lenFile);
 			memset(buffer, 0, MAX_INPUT_SIZE);
 		}
+		fclose(ptr);
 	}
 	sendTCPMessage(tcpSocket, "\n", 1);
 
@@ -134,10 +140,14 @@ void post() {
 }
 
 void ret() {
-	int numTokens, n, messageSize, fileSize;
-	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "RTV ", message[MAX_MESSAGE_SIZE], data[MAX_INPUT_SIZE];
+	int numTokens, n, messageSize, fileSize, shift;
+	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "RTV ", message[MAX_MESSAGE_SIZE], directory[MAX_INFO] = "Groups/", fileName[MAX_INFO], *bufferPointer;
+	FILE *ptr;
 
 	if (!(verifySession())) return;
+	if (stat(directory, &st) == -1)
+		mkdir(directory, 0777);
+	strcat(strcat(directory, selectedGroup.gid), "/");
 
 	numTokens = sscanf(buffer, "%s", args[0]);
 	if (numTokens < 1) {
@@ -161,36 +171,105 @@ void ret() {
 	}
 
 	strcat(strcat(strcat(strcat(strcat(strcat(command, loggedUser.uid), " "), selectedGroup.gid), " "), args[0]), "\n");
-	printf("%s", command);
 	memset(buffer, 0, MAX_INPUT_SIZE);
 	sendTCPMessage(tcpSocket, command, strlen(command));
 	receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
 
-	numTokens = sscanf(buffer, "%s %s %[^\0]", args[0], args[1], buffer);
+	numTokens = sscanf(buffer, "%s %s ", args[0], args[1]);
+	shift = strlen(args[0]) + strlen(args[1]) + 2;
+	bufferPointer = buffer + shift * sizeof(char);
 	if (numTokens < 2 || strcmp(args[0], "RRT") != 0) fprintf(stderr, "error: Server Error.\n");
 	else if (strcmp(args[1], "NOK") == 0) fprintf(stdout, "There was a problem with the retrieve request.\n");
 	else if (strcmp(args[1], "EOF") == 0) fprintf(stdout, "There are no messages available.\n");
 	else if (strcmp(args[1], "OK") == 0) {
-		/*
-		numTokens = sscanf(buffer, "%d %[^\0]", &n, buffer);
-		if (numTokens < 2) fprintf(stderr, "error: Server Error.\n");
+		numTokens = sscanf(bufferPointer, "%s ", args[0]);
+		if (numTokens < 1) fprintf(stderr, "error: Server Error.\n");
+		shift = strlen(args[0]) + 1;
+		bufferPointer = bufferPointer + shift * sizeof(char);
+		n = atoi(args[0]);
 		for (int i = 0; i < n; i++) {
-			numTokens = sscanf(buffer, "%s %s %d %s %[^\0]", args[0], args[1], &messageSize, message, buffer);
-			if (numTokens < 4) fprintf(stderr, "error: Server Error.\n");
-			if (messageSize > strlen(message)) {
+			numTokens = sscanf(bufferPointer, "%s %s %s ", args[0], args[1], args[2]);
+			if (numTokens < 3) {
 				receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
-				numTokens = sscanf(buffer, "%s %[^\0]", &message[strlen(message)], buffer);
+				if (numTokens == 0) {
+					numTokens = sscanf(buffer, "%s %s %s ", args[0], args[1], args[2]);
+					shift = strlen(args[0]) + strlen(args[1]) + strlen(args[2]) + 3;
+				}
+				else if (numTokens == 1) {
+					numTokens = sscanf(buffer, "%s %s ", args[1], args[2]);
+					shift = strlen(args[1]) + strlen(args[2]) + 2;
+				}
+				else {
+					numTokens = sscanf(buffer, "%s ", args[2]);
+					shift =  strlen(args[2]) + 1;
+				}
+				bufferPointer = buffer + shift * sizeof(char);
+			}
+			else {
+				shift = strlen(args[0]) + strlen(args[1]) + strlen(args[2]) + 3;
+				bufferPointer = bufferPointer + shift * sizeof(char);
+			}
+			messageSize = atoi(args[2]);
+			memset(message, 0, MAX_MESSAGE_SIZE);
+			if (messageSize > strlen(bufferPointer)) {
+				strcpy(message, bufferPointer);
+				receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
+				strncpy(&message[strlen(message)], buffer, (shift = messageSize - strlen(message)) - 1);
+				bufferPointer = buffer + (shift + 1) * sizeof(char);
+			}
+			else {
+				strncpy(message, bufferPointer, messageSize - 1);
+				bufferPointer = bufferPointer + (messageSize + 1) * sizeof(char);
 			}
 			fprintf(stdout, "Message of MID %s, posted by user with UID %s: \"%s\"", args[0], args[1], message);
-			if (buffer[0] == '/') {
-				numTokens = sscanf(buffer, "%s %d %s %[^\0]", args[0], &fileSize, data, buffer);
-				while (fileSize > strlen(data)) {
+			if (bufferPointer[0] == '/') {
+				numTokens = sscanf(bufferPointer, "/ %s %s ", args[0], args[1]);
+				if (numTokens < 2) {
+					receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
+					if (buffer[0] == '/') shift = 2;
+					else if (buffer[0] == ' ') shift = 1;
 
+					if (numTokens == 0) {
+						numTokens = sscanf(buffer, "/ %s %s ", args[0], args[1]);
+						shift += strlen(args[0]) + strlen(args[1]) + 2;
+					}
+					else {
+						numTokens = sscanf(buffer, " %s ", args[1]);
+						shift +=  strlen(args[1]) + 1;
+					}
+					bufferPointer = buffer + shift * sizeof(char);
 				}
+				else {
+					shift = strlen(args[0]) + strlen(args[1]) + 4;
+					bufferPointer = bufferPointer + shift * sizeof(char);
+				}
+				fileSize = atoi(args[1]);
+				if (stat(directory, &st) == -1)
+					mkdir(directory, 0777);
+				strcat(strcpy(fileName, directory), args[0]);
+				fprintf(stdout, " (associated with the file %s)", fileName);
+				if (!(ptr = fopen(fileName, "w"))) {
+					fprintf(stderr, "error: Can't create the file %s.\n", fileName);
+					close(tcpSocket);
+					return;
+				}
+				while (fileSize > 0) {
+					if (fileSize >= strlen(bufferPointer)) {
+						fwrite(bufferPointer, sizeof(char), fileSize, ptr);
+						fileSize -= shift;
+						receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
+						bufferPointer = buffer;
+					}
+					else {
+						fwrite(bufferPointer, sizeof(char), fileSize, ptr);
+						bufferPointer = bufferPointer + (fileSize + 1) * sizeof(char);
+						fileSize -= fileSize;
+					}
+				}
+				fclose(ptr);
 			}
+			fprintf(stdout, "\n");
 		}
-		*/
-		printf("%s\n", buffer);
 	} 
 	else exit(1);
 }
