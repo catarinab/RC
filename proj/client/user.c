@@ -10,7 +10,6 @@
 #include <ctype.h>
 #include "header/udpRequests.h"
 #include "header/tcpRequests.h"
-// login 84745 00000000
 
 void parseArgs(int argc, char *argv[]) {
 	if (argc == 1) {
