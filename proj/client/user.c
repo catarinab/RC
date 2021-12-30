@@ -11,6 +11,12 @@
 #include "header/udpRequests.h"
 #include "header/tcpRequests.h"
 
+void dispArgsError() {
+    fprintf(stderr, "error: incorrect command line arguments\n");
+	fprintf(stderr, "Usage: ./user [-n DSIP] [-p DSport]\n");
+    exit(1);
+}
+
 void parseArgs(int argc, char *argv[]) {
 	if (argc == 1) {
 		if (gethostname(ip, 128) == -1) fprintf(stderr, "error: %s\n", strerror(errno));
@@ -25,14 +31,14 @@ void parseArgs(int argc, char *argv[]) {
 			strcpy(port, argv[2]);
 			strcpy(ip, argv[4]);
 		} 
-		else fprintf(stderr, "error: incorrect command line arguments\n");
+		else dispArgsError();
 	}
 	else if (argc == 3) {
 		if (strcmp(argv[1], "-n") == 0) strcpy(ip, argv[2]);
 		else if (strcmp(argv[1], "-p") == 0) strcpy(port, argv[2]);
-		else fprintf(stderr, "error: incorrect command line arguments\n");
+		else dispArgsError();
 	}
-	else fprintf(stderr, "error: incorrect command line arguments\n");
+	else dispArgsError();
 }
 
 
