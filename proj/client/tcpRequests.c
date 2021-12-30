@@ -139,8 +139,20 @@ void post() {
 	else fprintf(stdout, "The message was successfully posted with MID %s.\n", args[1]);
 }
 
+char * movePointer(char *table, int tableSize , char *pointer, int *totalShifts, int shift) {
+	if ((*totalShifts += shift) < tableSize) {
+		pointer = pointer + shift * sizeof(char);
+	}
+	else {
+		*totalShifts -= tableSize;
+		receiveTCPMessage(tcpSocket, table, tableSize);
+		pointer = table + (*totalShifts) * sizeof(char);
+	}
+	return pointer;
+}
+
 void ret() {
-	int numTokens, n, messageSize, fileSize, shift;
+	int numTokens, n, messageSize, fileSize, totalShifts = 0, shift;
 	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "RTV ", message[MAX_MESSAGE_SIZE], directory[MAX_INFO] = "Groups/", fileName[MAX_INFO], *bufferPointer;
 	FILE *ptr;
 
@@ -174,10 +186,11 @@ void ret() {
 	memset(buffer, 0, MAX_INPUT_SIZE);
 	sendTCPMessage(tcpSocket, command, strlen(command));
 	receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
-
+	
 	numTokens = sscanf(buffer, "%s %s ", args[0], args[1]);
 	shift = strlen(args[0]) + strlen(args[1]) + 2;
-	bufferPointer = buffer + shift * sizeof(char);
+	bufferPointer = buffer;
+	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 	if (numTokens < 2 || strcmp(args[0], "RRT") != 0) fprintf(stderr, "error: Server Error.\n");
 	else if (strcmp(args[1], "NOK") == 0) fprintf(stdout, "There was a problem with the retrieve request.\n");
 	else if (strcmp(args[1], "EOF") == 0) fprintf(stdout, "There are no messages available.\n");
@@ -185,7 +198,7 @@ void ret() {
 		numTokens = sscanf(bufferPointer, "%s ", args[0]);
 		if (numTokens < 1) fprintf(stderr, "error: Server Error.\n");
 		shift = strlen(args[0]) + 1;
-		bufferPointer = bufferPointer + shift * sizeof(char);
+		bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 		n = atoi(args[0]);
 		for (int i = 0; i < n; i++) {
 			numTokens = sscanf(bufferPointer, "%s %s %s ", args[0], args[1], args[2]);
@@ -203,11 +216,12 @@ void ret() {
 					numTokens = sscanf(buffer, "%s ", args[2]);
 					shift =  strlen(args[2]) + 1;
 				}
-				bufferPointer = buffer + shift * sizeof(char);
+				bufferPointer = buffer;
+				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 			}
 			else {
 				shift = strlen(args[0]) + strlen(args[1]) + strlen(args[2]) + 3;
-				bufferPointer = bufferPointer + shift * sizeof(char);
+				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 			}
 			messageSize = atoi(args[2]);
 			memset(message, 0, MAX_MESSAGE_SIZE);
@@ -215,11 +229,12 @@ void ret() {
 				strcpy(message, bufferPointer);
 				receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
 				strncpy(&message[strlen(message)], buffer, (shift = messageSize - strlen(message)) - 1);
-				bufferPointer = buffer + (shift + 1) * sizeof(char);
+				bufferPointer = buffer;
+				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift + 1);
 			}
 			else {
 				strncpy(message, bufferPointer, messageSize - 1);
-				bufferPointer = bufferPointer + (messageSize + 1) * sizeof(char);
+				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, messageSize + 1);
 			}
 			fprintf(stdout, "Message of MID %s, posted by user with UID %s: \"%s\"", args[0], args[1], message);
 			if (bufferPointer[0] == '/') {
@@ -237,11 +252,12 @@ void ret() {
 						numTokens = sscanf(buffer, " %s ", args[1]);
 						shift +=  strlen(args[1]) + 1;
 					}
-					bufferPointer = buffer + shift * sizeof(char);
+					bufferPointer = buffer;
+					bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 				}
 				else {
 					shift = strlen(args[0]) + strlen(args[1]) + 4;
-					bufferPointer = bufferPointer + shift * sizeof(char);
+					bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 				}
 				fileSize = atoi(args[1]);
 				if (stat(directory, &st) == -1)
@@ -262,7 +278,7 @@ void ret() {
 					}
 					else {
 						fwrite(bufferPointer, sizeof(char), fileSize, ptr);
-						bufferPointer = bufferPointer + (fileSize + 1) * sizeof(char);
+						bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, fileSize + 1);
 						fileSize -= fileSize;
 					}
 				}

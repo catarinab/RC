@@ -65,6 +65,10 @@ void unr() {
 	concatenateArgs(argsCommand, args, 2);
 	strcat(command, argsCommand);
 
+	if(strcmp(loggedUser.uid, args[0]) == 0)
+		resetUser();
+
+
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
 
