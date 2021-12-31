@@ -1,0 +1,1 @@
+int verifyUserInfo(char uid[], char pwd[]);

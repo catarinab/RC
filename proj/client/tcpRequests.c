@@ -264,20 +264,26 @@ void ret() {
 					mkdir(directory, 0777);
 				strcat(strcpy(fileName, directory), args[0]);
 				fprintf(stdout, " (associated with the file %s)", fileName);
-				if (!(ptr = fopen(fileName, "w"))) {
+				if (!(ptr = fopen(fileName, "wb"))) {
 					fprintf(stderr, "error: Can't create the file %s.\n", fileName);
 					close(tcpSocket);
 					return;
 				}
 				while (fileSize > 0) {
 					if (fileSize >= strlen(bufferPointer)) {
-						fwrite(bufferPointer, sizeof(char), fileSize, ptr);
+						if (fwrite(bufferPointer, sizeof(char), (shift = strlen(bufferPointer)), ptr) != shift) {
+							fprintf(stderr, "error: Can't write to the file %s.\n", fileName); 
+							exit(1);
+						}
 						fileSize -= shift;
 						receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
 						bufferPointer = buffer;
 					}
 					else {
-						fwrite(bufferPointer, sizeof(char), fileSize, ptr);
+						if (fwrite(bufferPointer, sizeof(char), fileSize, ptr) != fileSize) {
+							fprintf(stderr, "error: Can't write to the file %s.\n", fileName); 
+							exit(1);
+						}
 						bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, fileSize + 1);
 						fileSize -= fileSize;
 					}
