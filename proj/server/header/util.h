@@ -22,3 +22,10 @@ extern enum {verbose, quiet} mode;
 
 
 int verifyUserInfo(char uid[], char pwd[]);
+int createUserDir(char *uid, char *pass);
+int checkUserExists(char *uid);
+int delUserDir(char *uid);
+int checkPass(char *uid, char *pass);
+int createLogFile(char *uid);
+int checkLog(char *uid);
+int deleteLogFile(char *uid);

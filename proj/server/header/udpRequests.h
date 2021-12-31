@@ -14,3 +14,4 @@ void reg();
 void unr();
 void login();
 void logout();
+void gls();

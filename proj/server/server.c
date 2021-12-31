@@ -118,6 +118,7 @@ void receiveCommands() {
                     logout();
                 }
                 else if (strcmp(op, "GLS") == 0) {
+                    gls();
                 }
                 else if (strcmp(op, "GSR") == 0) {
                 }
