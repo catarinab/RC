@@ -27,7 +27,7 @@ void reg() {
 	int numTokens;
 	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "REG", argsCommand[MAX_COMMAND_SIZE] = "";
 
-	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	numTokens = sscanf(buffer, "  %s %s", args[0], args[1]);
 
 	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
 	if (verifyUserInfo(args[0], args[1])) return;
@@ -42,7 +42,7 @@ void reg() {
 	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
 	if (n == -1) exit(1);
 
-	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "RRG") != 0){
 		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
@@ -57,7 +57,7 @@ void unr() {
 	int numTokens;
 	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "UNR", argsCommand[MAX_COMMAND_SIZE] = "";
 
-	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	numTokens = sscanf(buffer, "  %s %s", args[0], args[1]);
 
 	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
 	if (verifyUserInfo(args[0], args[1])) return;
@@ -76,7 +76,7 @@ void unr() {
 	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
 	if (n == -1) exit(1);
 
-	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	numTokens = sscanf(buffer, "  %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "RUN") != 0){
 		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
@@ -90,7 +90,7 @@ void login() {
 	int numTokens;
 	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "LOG", argsCommand[MAX_COMMAND_SIZE] = "";
 
-	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	numTokens = sscanf(buffer, "  %s %s", args[0], args[1]);
 
 	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
 	if (verifyUserInfo(args[0], args[1])) return;
@@ -108,7 +108,7 @@ void login() {
 	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
 	if (n == -1) exit(1);
 
-	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "RLO") != 0){
 		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
@@ -140,7 +140,7 @@ void logout() {
 	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
 	if (n == -1) exit(1);
 
-	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "ROU") != 0){
 		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
@@ -169,7 +169,7 @@ void gl() {
 	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
 	if (n == -1) exit(1);
 
-	numTokens = sscanf(buffer, "%s %s %[^\n]", args[0], args[1], buffer);
+	numTokens = sscanf(buffer, " %s %s %[^\n]", args[0], args[1], buffer);
 	if (numTokens < 2 || strcmp(args[0], "RGL") != 0){
 		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
@@ -178,7 +178,7 @@ void gl() {
 	else {
 		int n = atoi(args[1]);
 		for (int i = 0; i < n; i++) {
-			numTokens = sscanf(buffer, "%s %s %s %[^\n]", args[0], args[1], args[2], buffer);
+			numTokens = sscanf(buffer, " %s %s %s %[^\n]", args[0], args[1], args[2], buffer);
 			fprintf(stdout, "Group ID: %s, Group Name: %s\n", args[0], args[1]);
 		}
 	}
@@ -193,7 +193,7 @@ void sub() {
 		return;
 	}
 
-	numTokens = sscanf(buffer, "%s %s", args[1], args[2]);
+	numTokens = sscanf(buffer, " %s %s", args[1], args[2]);
 
 	if (numTokens != 2) {
 		fprintf(stderr, "error: incorrect command line arguments\n");
@@ -216,7 +216,7 @@ void sub() {
 	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
 	if (n == -1) exit(1);
 
-	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "RGS") != 0){
 		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
@@ -239,8 +239,9 @@ void unsub() {
 		fprintf(stderr, "error: No logged user.\n");
 		return;
 	}
-
-	numTokens = sscanf(buffer, "%s", args[1]);
+	
+	printf("%s\n", buffer);
+	numTokens = sscanf(buffer, " %s", args[1]);
 
 	if (numTokens != 1) {
 		fprintf(stderr, "error: Incorrect command line arguments\n");
@@ -263,7 +264,7 @@ void unsub() {
 	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
 	if (n == -1) exit(1);
 
-	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "RGU") != 0){
 		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
@@ -295,7 +296,7 @@ void mgl() {
 	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
 	if (n == -1) exit(1);
 
-	numTokens = sscanf(buffer, "%s %s %[^\n]", args[0], args[1], buffer);
+	numTokens = sscanf(buffer, " %s %s %[^\n]", args[0], args[1], buffer);
 	if (numTokens < 2 || strcmp(args[0], "RGM") != 0){
 		fprintf(stderr, "error: Server Error.\n");
 		exit(1);
@@ -305,7 +306,7 @@ void mgl() {
 	else {
 		int n = atoi(args[1]);
 		for (int i = 0; i < n; i++) {
-			numTokens = sscanf(buffer, "%s %s %s %[^\n]", args[0], args[1], args[2], buffer);
+			numTokens = sscanf(buffer, " %s %s %s %[^\n]", args[0], args[1], args[2], buffer);
 			fprintf(stdout, "Group ID: %s, Group Name: %s\n", args[0], args[1]);
 		}
 	}	
@@ -315,7 +316,7 @@ void sag() {
 	int numTokens, errFlag = 0;;
 	char args[1][MAX_INFO];
 
-	numTokens = sscanf(buffer, "%s", args[0]);
+	numTokens = sscanf(buffer, " %s", args[0]);
 
 	if (numTokens != 1) {
 		fprintf(stderr, "error: incorrect command line arguments\n");

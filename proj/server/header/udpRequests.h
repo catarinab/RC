@@ -15,3 +15,6 @@ void unr();
 void login();
 void logout();
 void gls();
+void gsr();
+void gur();
+void glm();

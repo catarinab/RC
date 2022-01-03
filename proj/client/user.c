@@ -56,7 +56,7 @@ void readCommands() {
 	while (fgets(buffer, sizeof(buffer)/sizeof(char), stdin)) {
 		char op[MAX_OP_SIZE];
 
-        int numTokens = sscanf(buffer, "%s %[^\n]", op, buffer);
+        int numTokens = sscanf(buffer, "%s%[^\n]", op, buffer);
 
         if (numTokens < 1) fprintf(stderr, "error: incorrect command line arguments\n");
 		else {

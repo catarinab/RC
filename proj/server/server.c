@@ -121,10 +121,13 @@ void receiveCommands() {
                     gls();
                 }
                 else if (strcmp(op, "GSR") == 0) {
+                    gsr();
                 }
                 else if (strcmp(op, "GUR") == 0) {
+                    gur();
                 }
                 else if (strcmp(op, "GLM") == 0) {
+                    glm();
                 }
                 else {
                     n = sendto(udpSocket, "ERR\n", 4, 0, udpRes->ai_addr, udpRes->ai_addrlen);

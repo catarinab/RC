@@ -80,7 +80,7 @@ void post() {
 
 	if (!(verifySession())) return;
 
-	numTokens = sscanf(buffer, "\"%[^\"]\" %s", buffer, args[0]);
+	numTokens = sscanf(buffer, " \"%[^\"]\" %s", buffer, args[0]);
 	if (numTokens < 1) {
 		fprintf(stderr, "error: Incorrect command line arguments\n");
 		return;
@@ -133,7 +133,7 @@ void post() {
 	receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
 	close(tcpSocket);
 
-	numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens < 2 || strcmp(args[0], "RPT") != 0) fprintf(stderr, "error: Server Error.\n");
 	else if (strcmp(args[1], "NOK") == 0) fprintf(stdout, "The message was not posted.\n");
 	else fprintf(stdout, "The message was successfully posted with MID %s.\n", args[1]);
@@ -161,7 +161,7 @@ void ret() {
 		mkdir(directory, 0777);
 	strcat(strcat(directory, selectedGroup.gid), "/");
 
-	numTokens = sscanf(buffer, "%s", args[0]);
+	numTokens = sscanf(buffer, " %s", args[0]);
 	if (numTokens < 1) {
 		fprintf(stderr, "error: Incorrect command line arguments\n");
 		return;
@@ -187,7 +187,7 @@ void ret() {
 	sendTCPMessage(tcpSocket, command, strlen(command));
 	receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
 	
-	numTokens = sscanf(buffer, "%s %s ", args[0], args[1]);
+	numTokens = sscanf(buffer, " %s %s ", args[0], args[1]);
 	shift = strlen(args[0]) + strlen(args[1]) + 2;
 	bufferPointer = buffer;
 	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
@@ -205,17 +205,18 @@ void ret() {
 			if (numTokens < 3) {
 				receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
 				if (numTokens == 0) {
-					numTokens = sscanf(buffer, "%s %s %s ", args[0], args[1], args[2]);
+					numTokens = sscanf(buffer, " %s %s %s ", args[0], args[1], args[2]);
 					shift = strlen(args[0]) + strlen(args[1]) + strlen(args[2]) + 3;
 				}
 				else if (numTokens == 1) {
-					numTokens = sscanf(buffer, "%s %s ", args[1], args[2]);
+					numTokens = sscanf(buffer, " %s %s ", args[1], args[2]);
 					shift = strlen(args[1]) + strlen(args[2]) + 2;
 				}
 				else {
-					numTokens = sscanf(buffer, "%s ", args[2]);
+					numTokens = sscanf(buffer, " %s ", args[2]);
 					shift =  strlen(args[2]) + 1;
 				}
+				totalShifts = 0;
 				bufferPointer = buffer;
 				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 			}
@@ -225,10 +226,11 @@ void ret() {
 			}
 			messageSize = atoi(args[2]);
 			memset(message, 0, MAX_MESSAGE_SIZE);
-			if (messageSize > strlen(bufferPointer)) {
+			if (messageSize > MAX_INPUT_SIZE - totalShifts) {
 				strcpy(message, bufferPointer);
 				receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
 				strncpy(&message[strlen(message)], buffer, (shift = messageSize - strlen(message)) - 1);
+				totalShifts = 0;
 				bufferPointer = buffer;
 				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift + 1);
 			}
@@ -245,13 +247,14 @@ void ret() {
 					else if (buffer[0] == ' ') shift = 1;
 
 					if (numTokens == 0) {
-						numTokens = sscanf(buffer, "/ %s %s ", args[0], args[1]);
+						numTokens = sscanf(buffer, " / %s %s ", args[0], args[1]);
 						shift += strlen(args[0]) + strlen(args[1]) + 2;
 					}
 					else {
-						numTokens = sscanf(buffer, " %s ", args[1]);
+						numTokens = sscanf(buffer, "  %s ", args[1]);
 						shift +=  strlen(args[1]) + 1;
 					}
+					totalShifts = 0;
 					bufferPointer = buffer;
 					bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 				}
@@ -270,13 +273,14 @@ void ret() {
 					return;
 				}
 				while (fileSize > 0) {
-					if (fileSize >= strlen(bufferPointer)) {
-						if (fwrite(bufferPointer, sizeof(char), (shift = strlen(bufferPointer)), ptr) != shift) {
+					if (fileSize >= MAX_INPUT_SIZE - totalShifts) {
+						if (fwrite(bufferPointer, sizeof(char), (shift = MAX_INPUT_SIZE - totalShifts), ptr) != shift) {
 							fprintf(stderr, "error: Can't write to the file %s.\n", fileName); 
 							exit(1);
 						}
 						fileSize -= shift;
 						receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
+						totalShifts = 0;
 						bufferPointer = buffer;
 					}
 					else {
