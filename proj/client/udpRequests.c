@@ -240,7 +240,6 @@ void unsub() {
 		return;
 	}
 	
-	printf("%s\n", buffer);
 	numTokens = sscanf(buffer, " %s", args[1]);
 
 	if (numTokens != 1) {

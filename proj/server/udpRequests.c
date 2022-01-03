@@ -224,7 +224,10 @@ void glm() {
                 strcat(buffer, reply);
             }
         }
-        sprintf(buffer, "RGM %d%s\n", nSubTo, buffer);
+        char *aux = strdup(buffer);
+        memset(buffer, 0, MAX_INPUT_SIZE);
+        sprintf(buffer, "RGM %d%s\n", nSubTo, aux);
+        free(aux);
     }
 
     if (mode == verbose) fprintf(stdout, "GUR, UID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
