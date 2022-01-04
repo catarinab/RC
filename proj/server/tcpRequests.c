@@ -10,11 +10,11 @@
 #include "header/util.h"
 
 void createTcpSocket() {
-    tcpSocket = socket(AF_INET, SOCK_STREAM, 0); 
+    tcpSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (tcpSocket == -1) exit(1);
 
     memset(&tcpHints, 0, sizeof(tcpHints));
-    tcpHints.ai_family = AF_INET;         
+    tcpHints.ai_family = AF_INET;
     tcpHints.ai_socktype = SOCK_STREAM;
     tcpHints.ai_flags = AI_PASSIVE;
 
@@ -38,10 +38,12 @@ void sendTCPMessage(int socket, char *ptr, int nleft) {
 }
 
 void receiveTCPMessage(int socket, char *ptr, int nleft) {
+	int nTotal = 0;
 	while (nleft > 0) {
 		n = read(socket, ptr, nleft);
+		nTotal += n;
 		if (n == -1) exit(1);
-		else if (n == 0) break;
+		else if (n == 0 || ptr[nTotal] == '\0') break; //lol n e' assim :(
 		nleft -= n;
 		ptr += n;
 	}
@@ -59,7 +61,7 @@ void uls() {
     strcpy(buffer, "RUL ");
     if (numTokens != 1) strcat(buffer, "NOK\n");
 	else if (strcmp(args[0], "00") == 0) strcat(buffer, "NOK\n");
-    else if (checkGroup(args[0])) strcat(buffer, "NOK\n");
+    else if (!(checkGroup(args[0]))) strcat(buffer, "NOK\n");
     else {
 		sprintf(pathname, "GROUPS/%s/%s_name.txt", args[0], args[0]);
 		memset(gname, 0, MAX_INFO);
@@ -68,6 +70,7 @@ void uls() {
 		fclose(ptr);
 		sprintf(reply, "OK %s", gname);
 		strcat(buffer, reply);
+		memset(pathname, 0, 20);
 		sprintf(pathname, "GROUPS/%s", args[0]);
 		d = opendir(pathname);
 		if (d) {

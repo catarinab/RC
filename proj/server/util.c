@@ -243,10 +243,13 @@ int deleteSubFile(char *uid, char *gid) {
 
 int verifyUserFile(char * userFile, char * uid) {
     char ext[4];
-    int numTokens;
+    char *token;
 
     memset(uid, 0, MAX_INFO);
-    numTokens = scanf(userFile, "%s.%s", uid, ext);
-    if(verifyDigit(uid, 0, strlen(uid)) && strlen(uid) == 5 && strcmp(ext, "txt") == 0) return 1;
+    token = strtok(userFile, ".");
+    strcpy(uid, token);
+    token = strtok(NULL, ".");
+    strcpy(ext, token);
+    if (verifyDigit(uid, 0, strlen(uid)) && strlen(uid) == 5 && strcmp(ext, "txt") == 0) return 1;
     else return 0;
 }
