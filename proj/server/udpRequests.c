@@ -175,10 +175,13 @@ void gur() {
     int numTokens;
     char args[2][MAX_INFO], reply[REPLY_SIZE] = "RGU ";
 
+    printf(buffer);
     numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
+    printf("%s %s\n", args[0], args[1]);
     if (numTokens != 2) strcat(reply, "NOK\n");
     else if (!(checkUser(args[0]))) strcat(reply, "E_USR\n");
     else if (!(checkLog(args[0]))) strcat(reply, "NOK\n");
+    else if (strcmp(args[0], "00") == 0) strcat(reply, "NOK\n");
     else if (checkGroup(args[1]) == 0) strcat(reply, "E_GRP\n");
     else {
         if (!(deleteSubFile(args[0], args[1]))) strcat(reply, "NOK\n");

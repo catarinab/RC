@@ -47,7 +47,7 @@ void receiveTCPMessage(int socket, char *ptr, int nleft) {
 
 void ul() {
 	int numTokens;
-	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "ULS ";
+	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE];
 	char responseBuffer[MAX_USER_SUB], groupName[MAX_INFO]; // fazer as contas do tamanho
 	if (!selectedGroup.selected) {
 		fprintf(stdout, "warning: No group selected.\n");
@@ -55,9 +55,7 @@ void ul() {
 	}
 	createTCPSocket();
 
-	strcat(command, selectedGroup.gid);
-	strcat(command, "\n");
-
+	sprintf(command, "ULS %s\n", selectedGroup.gid);
 	sendTCPMessage(tcpSocket, command, strlen(command));
 
 	memset(responseBuffer, 0, MAX_USER_SUB);
@@ -76,7 +74,7 @@ void ul() {
 
 void post() {
 	int numTokens, lenMessage;
-	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "PST ", *len;
+	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE], *len;
 
 	if (!(verifySession())) return;
 
@@ -88,7 +86,7 @@ void post() {
 	createTCPSocket();
 
     asprintf(&len, "%d", (lenMessage = strlen(buffer)));
-	strcat(strcat(strcat(strcat(strcat(strcat(command, loggedUser.uid), " "), selectedGroup.gid), " "), len), " ");
+	sprintf(command, "PST %s %s %s ", loggedUser.uid, selectedGroup.gid, len);
 	free(len);
 	sendTCPMessage(tcpSocket, command, strlen(command));
 	sendTCPMessage(tcpSocket, buffer, lenMessage);
@@ -117,7 +115,8 @@ void post() {
 		lenFile = ftell(ptr);
 		fseek(ptr, 0L, SEEK_SET);
 		asprintf(&len, "%d", lenFile);
-		strcat(strcat(strcat(strcat(strcpy(command, " "), args[0]), " "), len), " ");
+		memset(command, 0, MAX_COMMAND_SIZE);
+		sprintf(command, " %s %s ", args[0], len);
 		free(len);
 
 		sendTCPMessage(tcpSocket, command, strlen(command));
@@ -153,7 +152,7 @@ char * movePointer(char *table, int tableSize , char *pointer, int *totalShifts,
 
 void ret() {
 	int numTokens, n, messageSize, fileSize, totalShifts = 0, shift;
-	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "RTV ", message[MAX_MESSAGE_SIZE], directory[MAX_INFO] = "Groups/", fileName[MAX_INFO], *bufferPointer;
+	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE], message[MAX_MESSAGE_SIZE], directory[MAX_INFO] = "Groups/", fileName[MAX_INFO], *bufferPointer;
 	FILE *ptr;
 
 	if (!(verifySession())) return;
@@ -182,7 +181,7 @@ void ret() {
 		}
 	}
 
-	strcat(strcat(strcat(strcat(strcat(strcat(command, loggedUser.uid), " "), selectedGroup.gid), " "), args[0]), "\n");
+	sprintf(command, "RTV %s %s %s\n", loggedUser.uid, selectedGroup.gid, args[0]);
 	memset(buffer, 0, MAX_INPUT_SIZE);
 	sendTCPMessage(tcpSocket, command, strlen(command));
 	receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);

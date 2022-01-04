@@ -25,14 +25,17 @@ void createUdpSocket() {
 
 void reg() {
 	int numTokens;
-	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "REG", argsCommand[MAX_COMMAND_SIZE] = "";
+	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "REG ", argsCommand[MAX_COMMAND_SIZE] = "";
 
 	numTokens = sscanf(buffer, "  %s %s", args[0], args[1]);
 
-	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
+	if (numTokens != 2) {
+		fprintf(stderr, "error: incorrect command line arguments\n");
+		return;
+	}
 	if (verifyUserInfo(args[0], args[1])) return;
 
-	concatenateArgs(argsCommand, args, 2);
+	sprintf(argsCommand, "%s %s\n", args[0], args[1]);
 	strcat(command, argsCommand);
 
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
@@ -55,19 +58,21 @@ void reg() {
 
 void unr() {
 	int numTokens;
-	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "UNR", argsCommand[MAX_COMMAND_SIZE] = "";
+	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "UNR ", argsCommand[MAX_COMMAND_SIZE] = "";
 
 	numTokens = sscanf(buffer, "  %s %s", args[0], args[1]);
 
-	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
+	if (numTokens != 2) {
+		fprintf(stderr, "error: incorrect command line arguments\n");
+		return;
+	}
 	if (verifyUserInfo(args[0], args[1])) return;
 
-	concatenateArgs(argsCommand, args, 2);
+	sprintf(argsCommand, "%s %s\n", args[0], args[1]);
 	strcat(command, argsCommand);
 
 	if(strcmp(loggedUser.uid, args[0]) == 0)
 		resetUser();
-
 
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
@@ -88,18 +93,25 @@ void unr() {
 
 void login() {
 	int numTokens;
-	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "LOG", argsCommand[MAX_COMMAND_SIZE] = "";
+	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "LOG ", argsCommand[MAX_COMMAND_SIZE] = "";
 
-	numTokens = sscanf(buffer, "  %s %s", args[0], args[1]);
+	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 
-	if (numTokens != 2) fprintf(stderr, "error: incorrect command line arguments\n");
+	if (loggedUser.logged) {
+		fprintf(stderr, "error: User %s logged in, please logout first.\n", loggedUser.uid);
+		return;
+	}
+
+	if (numTokens != 2) {
+		fprintf(stderr, "error: incorrect command line arguments\n");
+		return;
+	}
 	if (verifyUserInfo(args[0], args[1])) return;
 
+	sprintf(argsCommand, "%s %s\n", args[0], args[1]);
+	strcat(command, argsCommand);
 	strcpy(loggedUser.uid, args[0]);
 	strcpy(loggedUser.pwd, args[1]);
-
-	concatenateArgs(argsCommand, args, 2);
-	strcat(command, argsCommand);
 
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
@@ -126,11 +138,14 @@ void login() {
 
 void logout() {
 	int numTokens;
-	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "OUT", argsCommand[MAX_COMMAND_SIZE] = "";
+	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "OUT ", argsCommand[MAX_COMMAND_SIZE] = "";
 
-	strcpy(args[0], loggedUser.uid);
-	strcpy(args[1], loggedUser.pwd);
-	concatenateArgs(argsCommand, args, 2);
+	if (!loggedUser.logged) {
+		fprintf(stderr, "error: No logged user.\n");
+		return;
+	}
+	
+	sprintf(argsCommand, "%s %s\n", loggedUser.uid, loggedUser.pwd);
 	strcat(command, argsCommand);
 
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
@@ -186,27 +201,27 @@ void gl() {
 
 void sub() {
 	int numTokens;
-	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "GSR", argsCommand[MAX_COMMAND_SIZE] = "";
+	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "GSR ", argsCommand[MAX_COMMAND_SIZE] = "";
 
 	if (!loggedUser.logged) {
 		fprintf(stderr, "error: No logged user.\n");
 		return;
 	}
 
-	numTokens = sscanf(buffer, " %s %s", args[1], args[2]);
+	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 
 	if (numTokens != 2) {
-		fprintf(stderr, "error: incorrect command line arguments\n");
+		fprintf(stderr, "error: Incorrect command line arguments\n");
 		return;
 	}
+	if (verifyGroupInfo(args[0], 0, args[1])) return;
 
-	if (strlen(args[1]) == 1) {
-		args[1][1] = args[1][0];
-		args[1][0] = '0';
+	if (strlen(args[0]) == 1) {
+		args[0][1] = args[0][0];
+		args[0][0] = '0';
 	}
 
-	strcpy(args[0], loggedUser.uid);
-	concatenateArgs(argsCommand, args, 3);
+	sprintf(argsCommand, "%s %s %s\n", loggedUser.uid, args[0], args[1]);
 	strcat(command, argsCommand);
 
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
@@ -233,27 +248,27 @@ void sub() {
 
 void unsub() {
 	int numTokens;
-	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "GUR", argsCommand[MAX_COMMAND_SIZE] = "";
+	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE] = "GUR ", argsCommand[MAX_COMMAND_SIZE] = "";
 
 	if (!loggedUser.logged) {
 		fprintf(stderr, "error: No logged user.\n");
 		return;
 	}
 	
-	numTokens = sscanf(buffer, " %s", args[1]);
+	numTokens = sscanf(buffer, " %s", args[0]);
 
 	if (numTokens != 1) {
 		fprintf(stderr, "error: Incorrect command line arguments\n");
 		return;
 	}
+	if (verifyGroupInfo(args[0], 1, NULL)) return;
 
-	if (strlen(args[1]) == 1) {
-		args[1][1] = args[1][0];
-		args[1][0] = '0';
+	if (strlen(args[0]) == 1) {
+		args[0][1] = args[0][0];
+		args[0][0] = '0';
 	}
 
-	strcpy(args[0], loggedUser.uid);
-	concatenateArgs(argsCommand, args, 2);
+	sprintf(argsCommand, "%s %s\n", loggedUser.uid, args[0]);
 	strcat(command, argsCommand);
 
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
@@ -277,15 +292,14 @@ void unsub() {
 
 void mgl() {
 	int numTokens;
-	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "GLM", argsCommand[MAX_COMMAND_SIZE] = "";
+	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE] = "GLM ", argsCommand[MAX_COMMAND_SIZE] = "";
 
 	if (!loggedUser.logged) {
 		fprintf(stderr, "error: No logged user.\n");
 		return;
 	}
 
-	strcpy(args[0], loggedUser.uid);
-	concatenateArgs(argsCommand, args, 1);
+	sprintf(argsCommand, "%s\n", loggedUser.uid);
 	strcat(command, argsCommand);
 
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
@@ -321,18 +335,7 @@ void sag() {
 		fprintf(stderr, "error: incorrect command line arguments\n");
 		return;
 	}
-	if (strlen(args[0]) > 2){
-		fprintf(stderr, "error: GID must have 1 or 2 numbers\n");
-		errFlag = 1;
-	}
-	for (int i = 0; i < strlen(args[0]); i++){
-		if (isdigit(args[0][i]) == 0){
-			fprintf(stderr, "error: GID must contain numbers only\n");
-			errFlag = 1;
-			break;
-		}
-	}
-	if (errFlag) return;
+	if (verifyGroupInfo(args[0], 1, NULL)) return;
 
 	if (strlen(args[0]) == 1) {
 		args[0][1] = args[0][0];

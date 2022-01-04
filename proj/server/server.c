@@ -78,6 +78,7 @@ void receiveCommands() {
                 if (numTokens < 1) sendTCPMessage(newTcpSocket, "ERR\n", 4);
                 else {
                     if (strcmp(op, "ULS") == 0) {
+                        uls();
                     }
                     else if (strcmp(op, "PST") == 0) {
                     }

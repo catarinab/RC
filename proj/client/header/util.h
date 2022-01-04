@@ -20,7 +20,6 @@ extern char buffer[MAX_INPUT_SIZE], port[6], ip[MAX_IP_SIZE]; //nosso pc: localh
 extern user loggedUser; 
 extern group selectedGroup;
 
-void concatenateArgs(char *final, char args[][MAX_INFO], int argsNumber);
 int verifyDigit(char buff[], int beg, int end, char err[]);
 int verifyAlnum(char buff[], int beg, int end, char err[]);
 int verifyAlpha(char buff[], int beg, int end, char err[]);
@@ -28,3 +27,4 @@ int verifyUserInfo(char uid[], char pwd[]);
 int verifySession();
 void resetUser();
 void resetGroup();
+int verifyGroupInfo(char gid[], int flag, char gname[]);

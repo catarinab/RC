@@ -20,14 +20,6 @@ char buffer[MAX_INPUT_SIZE], port[6], ip[MAX_IP_SIZE]; //nosso pc: localhost;
 user loggedUser; 
 group selectedGroup;
 
-void concatenateArgs(char *final, char args[][MAX_INFO], int argsNumber) {
-	for(int i = 0; i < argsNumber; i++){
-		strcat(final, " ");
-		strcat(final, args[i]);
-	}
-	strcat(final, "\n");
-}
-
 int verifyDigit(char buff[], int beg, int end, char err[]) {
 	for (int i = beg; i < end; i ++){
 		if (isdigit(buff[i]) == 0) {
@@ -60,17 +52,38 @@ int verifyAlpha(char buff[], int beg, int end, char err[]) {
 
 int verifyUserInfo(char uid[], char pwd[]) {
 	int errFlag = 0;
-	errFlag = verifyDigit(uid, 0, strlen(uid), "error: UID must contain numbers only");
 
 	if (strlen(uid) != 5){
 		fprintf(stderr, "error: UID must have 5 numbers\n");
 		errFlag = 1;
 	}
+	if (!errFlag) errFlag = verifyDigit(uid, 0, 5, "error: UID must contain numbers only");
+
 	if (strlen(pwd) != 8){
 		fprintf(stderr, "error: Password must have 8 characters\n");
 		errFlag = 1;
 	}
-	errFlag = verifyAlnum(pwd, 0, strlen(pwd), "Password must contain alphanumeric characters only");
+	if (!errFlag) errFlag = verifyAlnum(pwd, 0, 8, "Password must contain alphanumeric characters only");
+
+	return errFlag;
+}
+
+int verifyGroupInfo(char gid[], int flag, char gname[]) {
+	int errFlag = 0;
+
+	if (strlen(gid) > 2){
+		fprintf(stderr, "error: GID must have no more than 2 numbers\n");
+		errFlag = 1;
+	}
+	if (!errFlag) errFlag = verifyDigit(gid, 0, strlen(gid), "error: GID must contain numbers only");
+	
+	if (flag) return errFlag;
+	
+	if (strlen(gname) > 24){
+		fprintf(stderr, "error: Group Name must have no more than 24 alphanumeric characters\n");
+		errFlag = 1;
+	}
+	if (!errFlag) errFlag = verifyAlnum(gname, 0, strlen(gname), "Group Name must contain alphanumeric characters only");
 
 	return errFlag;
 }

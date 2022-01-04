@@ -37,3 +37,4 @@ int createGroupDir(char *gid, char *gname);
 int createSubFile(char *uid, char *gid);
 int deleteSubFile(char *uid, char *gid);
 int countMessages(char *gid);
+int verifyUserFile(char * userFile, char * uid);
