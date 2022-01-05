@@ -34,8 +34,14 @@ void parseArgs(int argc, char *argv[]) {
 		else dispArgsError();
 	}
 	else if (argc == 3) {
-		if (strcmp(argv[1], "-n") == 0) strcpy(ip, argv[2]);
-		else if (strcmp(argv[1], "-p") == 0) strcpy(port, argv[2]);
+		if (strcmp(argv[1], "-n") == 0) {
+			strcpy(ip, argv[2]);
+			strcpy(port, "58056");
+		} 
+		else if (strcmp(argv[1], "-p") == 0){
+			if (gethostname(ip, 128) == -1) fprintf(stderr, "error: %s\n", strerror(errno));
+			strcpy(port, argv[2]);
+		} 
 		else dispArgsError();
 	}
 	else dispArgsError();

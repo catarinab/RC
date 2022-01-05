@@ -36,7 +36,7 @@ void parseArgs(int argc, char *argv[]) {
 	}
     else if (argc == 4) {
         mode = verbose;
-		if (strcmp(argv[1], "-v") == 0 && strcmp(argv[2], "-p")) strcpy(port, argv[3]);
+		if (strcmp(argv[1], "-v") == 0 && strcmp(argv[2], "-p") == 0) strcpy(port, argv[3]);
 		else if (strcmp(argv[1], "-p") == 0 && strcmp(argv[3], "-v") == 0) strcpy(port, argv[2]);
 		else dispArgsError();
 	}
