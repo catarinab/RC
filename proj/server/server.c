@@ -81,7 +81,6 @@ void receiveCommands() {
                         uls();
                     }
                     else if (strcmp(op, "PST") == 0) {
-                        printf("pst\n");
                         pst();
                     }
                     else if (strcmp(op, "RTV") == 0) {
@@ -91,7 +90,6 @@ void receiveCommands() {
                     }
                 }
                 close(newTcpSocket);
-                printf("bye\n");
                 exit(0);
             }
             close(newTcpSocket);
