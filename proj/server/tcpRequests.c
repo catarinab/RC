@@ -38,12 +38,13 @@ void sendTCPMessage(int socket, char *ptr, int nleft) {
 }
 
 void receiveTCPMessage(int socket, char *ptr, int nleft) {
-	int nTotal = 0;
 	while (nleft > 0) {
 		n = read(socket, ptr, nleft);
-		nTotal += n;
 		if (n == -1) exit(1);
-		else if (n == 0 || ptr[nTotal] == '\0') break; //lol n e' assim :(
+		else if (n == 0 || ptr[n - 1] == '\n'){
+			ptr[n] = '\0';
+			break; 
+		}
 		nleft -= n;
 		ptr += n;
 	}
@@ -90,4 +91,101 @@ void uls() {
     if (mode == verbose) fprintf(stdout, "ULS, GID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
 
     sendTCPMessage(newTcpSocket, buffer, strlen(buffer));
+}
+
+char * movePointer(char *table, int tableSize , char *pointer, int *totalShifts, int shift) {
+	if ((*totalShifts += shift) < tableSize) {
+		pointer = pointer + shift * sizeof(char);
+	}
+	else {
+		*totalShifts -= tableSize;
+		receiveTCPMessage(newTcpSocket, table, tableSize);
+		pointer = table + (*totalShifts) * sizeof(char);
+	}
+	return pointer;
+}
+
+void pst() {
+	FILE *ptr;
+	int numTokens, msgSize, fileSize, shift, totalShifts, errFlag = 0;
+    char args[2][MAX_INFO], uid[6], gid[3], mid[5], reply[REPLY_SIZE] = "RPT ", message[MAX_MESSAGE_SIZE], pathname[45], *bufferPointer = buffer;
+
+	printf("%s\n", buffer);
+	numTokens = sscanf(buffer, "%s %s ", args[0], args[1]);
+	shift = strlen(args[0]) + strlen(args[1]) + 2;
+	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+	if (numTokens != 2) strcat(buffer, "NOK\n");
+	else if (!(checkUser(args[0]))) strcat(buffer, "NOK\n");
+	else if (!(checkLog(args[0]))) strcat(buffer, "NOK\n");
+    else if (!(checkGroup(args[1]))) strcat(buffer, "NOK\n");
+	else if (!(checkMessage(args[1], mid))) strcat(buffer, "NOK\n");
+    else {
+		printf("oi\n");
+		strcpy(uid, args[0]);
+		memset(args[0], 0, MAX_INFO);
+		strcpy(gid, args[1]);
+		memset(args[1], 0, MAX_INFO);
+		numTokens = sscanf(buffer, "%s ", args[0]);
+		shift = strlen(args[0]) + 1;
+		bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+		if (numTokens != 1) strcat(buffer, "NOK\n");
+		else {
+			msgSize = atoi(args[0]);
+			printf("oi %d\n", msgSize);
+			memset(message, 0, MAX_MESSAGE_SIZE);
+			printf("WAIT ITS GONNA TAKE A SECOND, TAKE A SECOND\n");
+			strncpy(message, bufferPointer, msgSize);
+			printf("STEP BACK, STEP BACK\n");
+			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, msgSize + 1);
+			printf("WA DA DA DA\n");
+			if (!(createMsgDir(uid, gid, mid, message))) strcat(buffer, "NOK\n");
+			else {
+				printf("oi\n");
+				memset(args[0], 0, MAX_INFO);
+				numTokens = sscanf(buffer, "%s %s ", args[0], args[1]);
+				shift = strlen(args[0]) + strlen(args[1]) + 2;
+				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+				if (numTokens == 0) strcat(strcat(reply, mid), "\n");
+				else if (numTokens =! 2) strcat(buffer, "NOK\n");
+				else {
+					printf("oi\n");
+					fileSize = atoi(args[1]);
+					sprintf(pathname, "GROUPS/%s/MSG/%s/%s", gid, mid, args[0]);
+					if (!(ptr = fopen(pathname, "w"))) strcat(buffer, "NOK\n");
+					else {
+						printf("oi\n");
+						while (fileSize > 0) {
+							if (fileSize > MAX_INPUT_SIZE - totalShifts) {
+								if (fwrite(bufferPointer, sizeof(char), (shift = MAX_INPUT_SIZE - totalShifts), ptr) != shift) {
+									strcat(buffer, "NOK\n");
+									errFlag = 1;
+									break;
+								}
+								fileSize -= shift;
+								receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
+								totalShifts = 0;
+								bufferPointer = buffer;
+							}
+							else {
+								if (fwrite(bufferPointer, sizeof(char), fileSize, ptr) != fileSize) {
+									strcat(buffer, "NOK\n");
+									errFlag = 1;
+									break;
+								}
+								bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, fileSize + 1);
+								fileSize -= fileSize;
+							}
+						}
+						if (!errFlag) strcat(strcat(reply, mid), "\n");
+						fclose(ptr);
+					}
+				}
+			}
+		}
+	}
+	printf("boi\n");
+
+	if (mode == verbose) fprintf(stdout, "PST, UID: %s, GID: %s, IP: %d, PORT: %d\n", uid, gid, addr.sin_addr.s_addr, addr.sin_port);
+
+    sendTCPMessage(newTcpSocket, reply, strlen(reply));
 }

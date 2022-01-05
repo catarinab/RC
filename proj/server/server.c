@@ -70,7 +70,7 @@ void receiveCommands() {
             if ((newTcpSocket = accept(tcpSocket, (struct sockaddr*) &addr, &addrlen)) == -1) exit(1);
             if ((child = fork()) == 0) {
                 int origIp = addr.sin_addr.s_addr;
-                close(tcpSocket);
+                //close(tcpSocket);
                 memset(buffer, 0, MAX_INPUT_SIZE);
                 receiveTCPMessage(newTcpSocket, buffer, MAX_INPUT_SIZE);
                 numTokens = sscanf(buffer, "%s %[^\n]", op, buffer);
@@ -81,6 +81,8 @@ void receiveCommands() {
                         uls();
                     }
                     else if (strcmp(op, "PST") == 0) {
+                        printf("pst\n");
+                        pst();
                     }
                     else if (strcmp(op, "RTV") == 0) {
                     }
@@ -89,6 +91,7 @@ void receiveCommands() {
                     }
                 }
                 close(newTcpSocket);
+                printf("bye\n");
                 exit(0);
             }
             close(newTcpSocket);

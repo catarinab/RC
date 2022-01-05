@@ -131,6 +131,7 @@ void post() {
 
 	receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
 	close(tcpSocket);
+	printf("%s\n", buffer);
 
 	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens < 2 || strcmp(args[0], "RPT") != 0) fprintf(stderr, "error: Server Error.\n");
@@ -195,7 +196,10 @@ void ret() {
 	else if (strcmp(args[1], "EOF") == 0) fprintf(stdout, "There are no messages available.\n");
 	else if (strcmp(args[1], "OK") == 0) {
 		numTokens = sscanf(bufferPointer, "%s ", args[0]);
-		if (numTokens < 1) fprintf(stderr, "error: Server Error.\n");
+		if (numTokens < 1) {
+			fprintf(stderr, "error: Server Error.\n");
+			return;
+		}
 		shift = strlen(args[0]) + 1;
 		bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 		n = atoi(args[0]);

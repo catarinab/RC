@@ -1,4 +1,4 @@
-#define max(A,B) ((A) >= (B) ? (A) : (B))
+#define max(A, B) ((A) >= (B) ? (A) : (B))
 
 #define MAX_INPUT_SIZE 3170
 #define MAX_MESSAGE_SIZE 240

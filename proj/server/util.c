@@ -253,3 +253,41 @@ int verifyUserFile(char * userFile, char * uid) {
     if (verifyDigit(uid, 0, strlen(uid)) && strlen(uid) == 5 && strcmp(ext, "txt") == 0) return 1;
     else return 0;
 }
+
+int checkMessage(char *gid, char *mid) {
+    int nMsg;
+    char pathname[20];
+
+    sprintf(pathname, "GROUPS/%s/MSG/9999", gid);
+    if (access(pathname, F_OK) == 0) return 0;
+    else {
+        nMsg = countMessages(gid);
+        nMsg++;
+        if (nMsg < 10) sprintf(mid, "000%d", nMsg);
+        else if (nMsg < 100) sprintf(mid, "00%d", nMsg);
+        else if (nMsg < 1000) sprintf(mid, "0%d", nMsg);
+        else sprintf(mid, "%d", nMsg);
+        return 1;
+    }
+}
+
+int createMsgDir(char *uid, char *gid, char *mid, char *text) {
+    int size;
+    FILE * ptr;
+    char pathname[35];
+
+    sprintf(pathname,"GROUPS/%s/MSG/%s", gid, mid);
+    if ((mkdir(pathname, 0700)) == -1) return 0;
+
+    sprintf(pathname, "GROUPS/%s/MSG/%s/A U T H O R.txt", gid, mid);
+    if (!(ptr = fopen(pathname, "w"))) return 0;
+    if (fwrite(uid, sizeof(char), (size = strlen(uid)), ptr) != size) return 0;
+    fclose(ptr);
+
+    sprintf(pathname, "GROUPS/%s/MSG/%s/T E X T.txt", gid, mid);
+    if (!(ptr = fopen(pathname, "w"))) return 0;
+    if (fwrite(text, sizeof(char), (size = strlen(text)), ptr) != size) return 0;
+    fclose(ptr);
+
+    return 1;
+}

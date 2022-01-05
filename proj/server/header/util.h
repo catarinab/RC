@@ -38,3 +38,5 @@ int createSubFile(char *uid, char *gid);
 int deleteSubFile(char *uid, char *gid);
 int countMessages(char *gid);
 int verifyUserFile(char * userFile, char * uid);
+int checkMessage(char *gid, char *mid);
+int createMsgDir(char *uid, char *gid, char *mid, char *text);
