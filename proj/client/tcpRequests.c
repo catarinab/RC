@@ -131,6 +131,7 @@ void post() {
 
 	receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
 	close(tcpSocket);
+
 	printf("%s\n", buffer);
 
 	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
@@ -232,13 +233,13 @@ void ret() {
 			if (messageSize > MAX_INPUT_SIZE - totalShifts) {
 				strcpy(message, bufferPointer);
 				receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
-				strncpy(&message[strlen(message)], buffer, (shift = messageSize - strlen(message)) - 1);
+				strncpy(&message[strlen(message)], buffer, (shift = messageSize - strlen(message)));
 				totalShifts = 0;
 				bufferPointer = buffer;
 				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift + 1);
 			}
 			else {
-				strncpy(message, bufferPointer, messageSize - 1);
+				strncpy(message, bufferPointer, messageSize);
 				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, messageSize + 1);
 			}
 			fprintf(stdout, "Message of MID %s, posted by user with UID %s: \"%s\"", args[0], args[1], message);

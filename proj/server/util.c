@@ -86,9 +86,9 @@ int countMessages(char *gid) {
     sprintf(pathname, "GROUPS/%s/MSG/0001", gid);
     while (access(pathname, F_OK) == 0) {
         nMsg++;
-        if (nMsg < 9) sprintf(pathname, "GROUPS/000%d", (nMsg + 1));
-        else if (nMsg < 99) sprintf(pathname, "GROUPS/00%d", (nMsg + 1));
-        else if (nMsg < 999) sprintf(pathname, "GROUPS/0%d", (nMsg + 1));
+        if (nMsg < 9) sprintf(pathname, "GROUPS/%s/MSG/000%d", gid, (nMsg + 1));
+        else if (nMsg < 99) sprintf(pathname, "GROUPS/%s/MSG/00%d", gid, (nMsg + 1));
+        else if (nMsg < 999) sprintf(pathname, "GROUPS/%s/MSG/0%d", gid, (nMsg + 1));
         else sprintf(pathname, "GROUPS/%d", (nMsg + 1));
     }
     return nMsg;
@@ -267,6 +267,7 @@ int checkMessage(char *gid, char *mid) {
         else if (nMsg < 100) sprintf(mid, "00%d", nMsg);
         else if (nMsg < 1000) sprintf(mid, "0%d", nMsg);
         else sprintf(mid, "%d", nMsg);
+        printf("DENTRO DO NMSG: %d %s\n", nMsg, mid);
         return 1;
     }
 }

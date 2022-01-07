@@ -77,14 +77,20 @@ int verifyGroupInfo(char gid[], int flag, char gname[]) {
 	}
 	if (!errFlag) errFlag = verifyDigit(gid, 0, strlen(gid), "error: GID must contain numbers only");
 	
-	if (flag) return errFlag;
-	
-	if (strlen(gname) > 24){
-		fprintf(stderr, "error: Group Name must have no more than 24 alphanumeric characters\n");
-		errFlag = 1;
+	if (gname != NULL) {
+		if (strlen(gname) > 24){
+			fprintf(stderr, "error: Group Name must have no more than 24 alphanumeric characters\n");
+			errFlag = 1;
+		}
+		if (!errFlag) {
+			for (int i = 0; i < strlen(gname); i ++){
+				if (isalnum(gname[i]) == 0 && gname[i] != '-' && gname[i] != '_') {
+					fprintf(stderr, "error: Group Name must contain alphanumeric characters only\n");
+					errFlag = 1;
+				}
+			}
+		}
 	}
-	if (!errFlag) errFlag = verifyAlnum(gname, 0, strlen(gname), "Group Name must contain alphanumeric characters only");
-
 	return errFlag;
 }
 

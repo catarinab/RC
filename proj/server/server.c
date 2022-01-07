@@ -69,8 +69,7 @@ void receiveCommands() {
             addrlen = sizeof(addr);
             if ((newTcpSocket = accept(tcpSocket, (struct sockaddr*) &addr, &addrlen)) == -1) exit(1);
             if ((child = fork()) == 0) {
-                int origIp = addr.sin_addr.s_addr;
-                //close(tcpSocket);
+                close(tcpSocket);
                 memset(buffer, 0, MAX_INPUT_SIZE);
                 receiveTCPMessage(newTcpSocket, buffer, MAX_INPUT_SIZE);
                 numTokens = sscanf(buffer, "%s %[^\n]", op, buffer);
@@ -99,7 +98,6 @@ void receiveCommands() {
             memset(buffer, 0, MAX_INPUT_SIZE);
 	        n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
 	        if (n == -1) exit(1);
-            int origIp = addr.sin_addr.s_addr;
 	        numTokens = sscanf(buffer, "%s %[^\n]", op, buffer);
             //Switch
             if (numTokens < 1) {
