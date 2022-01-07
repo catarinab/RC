@@ -94,7 +94,6 @@ void uls() {
 }
 
 char * movePointer(char *table, int tableSize , char *pointer, int *totalShifts, int shift) {
-	printf("wtf\n");
 	if ((*totalShifts += shift) < tableSize) {
 		pointer = pointer + shift * sizeof(char);
 	}
@@ -103,74 +102,60 @@ char * movePointer(char *table, int tableSize , char *pointer, int *totalShifts,
 		receiveTCPMessage(newTcpSocket, table, tableSize);
 		pointer = table + (*totalShifts) * sizeof(char);
 	}
-	printf("wtf2\n");
 	return pointer;
 }
 
 void pst() {
 	FILE *ptr;
-	int numTokens, msgSize, fileSize, shift, totalShifts, errFlag = 0;
+	int numTokens, msgSize, fileSize, shift, totalShifts = 0, errFlag = 0;
     char args[2][MAX_INFO], uid[6], gid[3], mid[5], reply[REPLY_SIZE] = "RPT ", message[MAX_MESSAGE_SIZE], pathname[45], *bufferPointer = buffer;
 
-	printf("OI\n");
 	printf("%s\n", bufferPointer);
 	numTokens = sscanf(bufferPointer, "%s %s ", args[0], args[1]);
-	printf("lol\n");
 	shift = strlen(args[0]) + strlen(args[1]) + 2;
-	printf("oui oui baguette\n");
 	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
-	printf("????\n");
 	if (numTokens != 2) strcat(reply, "NOK\n");
 	else if (!(checkUser(args[0]))) strcat(reply, "NOK\n");
 	else if (!(checkLog(args[0]))) strcat(reply, "NOK\n");
     else if (!(checkGroup(args[1]))) strcat(reply, "NOK\n");
 	else if (!(checkMessage(args[1], mid))) strcat(reply, "NOK\n");
     else {
-		printf("OI! %s\n", mid);
 		strcpy(uid, args[0]);
 		memset(args[0], 0, MAX_INFO);
 		strcpy(gid, args[1]);
 		memset(args[1], 0, MAX_INFO);
-		printf("%s\n", bufferPointer);
 		numTokens = sscanf(bufferPointer, "%s ", args[0]);
 		shift = strlen(args[0]) + 1;
 		bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 		if (numTokens != 1) strcat(reply, "NOK\n");
 		else {
-			printf("OI?\n");
 			msgSize = atoi(args[0]);
-			printf("msgSize: %d\n", msgSize);
 			memset(message, 0, MAX_MESSAGE_SIZE);
 			strncpy(message, bufferPointer, msgSize);
-			printf("%s\n", bufferPointer);
 			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, msgSize);
 			if (!(createMsgDir(uid, gid, mid, message))) strcat(reply, "NOK\n");
 			else {
 				memset(args[0], 0, MAX_INFO);
 				memset(args[1], 0, MAX_INFO);
-				printf("%s\n", bufferPointer);
 				numTokens = sscanf(bufferPointer, " %s %s ", args[0], args[1]);
-				printf("nTokens: %d\n", numTokens);
-				shift = strlen(args[0]) + strlen(args[1]) + 2;
+				shift = strlen(args[0]) + strlen(args[1]) + 3;
 				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
-				if (numTokens == -1) strcat(strcat(reply, mid), "\n");
+				if (numTokens == -1 || numTokens == 0) strcat(strcat(reply, mid), "\n");
 				else if (numTokens =! 2) strcat(reply, "NOK\n");
 				else {
-					printf("ENTREI\n");
 					fileSize = atoi(args[1]);
 					sprintf(pathname, "GROUPS/%s/MSG/%s/%s", gid, mid, args[0]);
-					if (!(ptr = fopen(pathname, "w"))) strcat(reply, "NOK\n");
+					if (!(ptr = fopen(pathname, "wb"))) strcat(reply, "NOK\n");
 					else {
 						while (fileSize > 0) {
-							printf("LENDO\n");
-							if (fileSize > MAX_INPUT_SIZE - totalShifts) {
+							if (fileSize >= MAX_INPUT_SIZE - totalShifts) {
 								if (fwrite(bufferPointer, sizeof(char), (shift = MAX_INPUT_SIZE - totalShifts), ptr) != shift) {
 									strcat(buffer, "NOK\n");
 									errFlag = 1;
 									break;
 								}
 								fileSize -= shift;
-								receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
+								receiveTCPMessage(newTcpSocket, buffer, MAX_INPUT_SIZE);
 								totalShifts = 0;
 								bufferPointer = buffer;
 							}

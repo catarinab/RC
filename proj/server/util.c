@@ -267,7 +267,6 @@ int checkMessage(char *gid, char *mid) {
         else if (nMsg < 100) sprintf(mid, "00%d", nMsg);
         else if (nMsg < 1000) sprintf(mid, "0%d", nMsg);
         else sprintf(mid, "%d", nMsg);
-        printf("DENTRO DO NMSG: %d %s\n", nMsg, mid);
         return 1;
     }
 }

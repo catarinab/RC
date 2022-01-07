@@ -132,8 +132,6 @@ void post() {
 	receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
 	close(tcpSocket);
 
-	printf("%s\n", buffer);
-
 	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens < 2 || strcmp(args[0], "RPT") != 0) fprintf(stderr, "error: Server Error.\n");
 	else if (strcmp(args[1], "NOK") == 0) fprintf(stdout, "The message was not posted.\n");

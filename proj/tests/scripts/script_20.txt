@@ -1,4 +1,0 @@
-select 01
-ulist
-exit
-
