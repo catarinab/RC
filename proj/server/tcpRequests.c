@@ -109,8 +109,8 @@ void uls() {
 
 void pst() {
 	FILE *ptr;
-	int numTokens, msgSize, fileSize, shift, totalShifts = 0, errFlag = 0;
-    char args[2][MAX_INFO], uid[6], gid[3], mid[5], reply[REPLY_SIZE] = "RPT ", message[MAX_MESSAGE_SIZE], pathname[45], *bufferPointer = buffer;
+	int numTokens, nMsgize, fileSize, shift, totalShifts = 0, errFlag = 0;
+    char args[2][MAX_INFO], uid[6], gid[3], mid[5] = "0000", reply[REPLY_SIZE] = "RPT ", message[MAX_MESSAGE_SIZE], pathname[45], *bufferPointer = buffer;
 
 	shift = 4;
 	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
@@ -121,6 +121,7 @@ void pst() {
 	else if (!(checkUser(args[0]))) strcat(reply, "NOK\n");
 	else if (!(checkLog(args[0]))) strcat(reply, "NOK\n");
     else if (!(checkGroup(args[1]))) strcat(reply, "NOK\n");
+	else if (!(checkSub(args[0], args[1]))) strcat(reply, "NOK\n");
 	else if (!(checkMessage(args[1], mid))) strcat(reply, "NOK\n");
     else {
 		strcpy(uid, args[0]);
@@ -132,10 +133,10 @@ void pst() {
 		bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 		if (numTokens != 1) strcat(reply, "NOK\n");
 		else {
-			msgSize = atoi(args[0]);
+			nMsgize = atoi(args[0]);
 			memset(message, 0, MAX_MESSAGE_SIZE);
-			strncpy(message, bufferPointer, msgSize);
-			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, msgSize);
+			strncpy(message, bufferPointer, nMsgize);
+			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, nMsgize);
 			if (!(createMsgDir(uid, gid, mid, message))) strcat(reply, "NOK\n");
 			else {
 				memset(args[0], 0, MAX_INFO);
@@ -184,4 +185,71 @@ void pst() {
 	if (mode == verbose) fprintf(stdout, "PST, UID: %s, GID: %s, IP: %d, PORT: %d\n", uid, gid, addr.sin_addr.s_addr, addr.sin_port);
 
     sendTCPMessage(newTcpSocket, reply, strlen(reply));
+}
+
+void rtv() {
+	FILE *ptr;
+	int numTokens, nMsg, nMsgize, fileSize, shift, totalShifts = 0;
+    char args[3][MAX_INFO], message[MAX_MESSAGE_SIZE], mid[5], pathname[45], *bufferPointer = buffer;
+
+	shift = 4;
+	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+	numTokens = sscanf(bufferPointer, "%s %s %s\n", args[0], args[1], args[2]);
+	shift = strlen(args[0]) + strlen(args[1]) + strlen(args[2]) + 2;
+	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+	memset(buffer, 0, MAX_INPUT_SIZE);
+	strcpy(buffer, "RRT ");
+	bufferPointer = buffer;
+	totalShifts = 0;
+	shift = 4;
+	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+	if (numTokens != 3) strcpy(bufferPointer, "NOK\n");
+	else if (!(checkUser(args[0]))) strcpy(bufferPointer, "NOK\n");
+	else if (!(checkLog(args[0]))) strcpy(bufferPointer, "NOK\n");
+    else if (!(checkGroup(args[1]))) strcpy(bufferPointer, "NOK\n");
+	else if (!(checkSub(args[0], args[1]))) strcpy(bufferPointer, "NOK\n");
+	else if (!(checkMessage(args[1], args[2]))) strcpy(bufferPointer, "EOF\n");
+    else {
+		nMsg = atoi(args[2]) + 19;
+        if (nMsg < 100) sprintf(pathname, "GROUPS/%s/MSG/00%d", args[1], nMsg);
+        else if (nMsg < 1000) sprintf(pathname, "GROUPS/%s/MSG/0%d", args[1], nMsg);
+        else sprintf(pathname, "GROUPS/%s/MSG/%d", nMsg);
+    	if (access(pathname, F_OK) == 0) nMsg = 20;
+		else nMsg = countMessages(args[1], nMsg - 19) + 1;
+		sprintf(mid, "%d", nMsg);
+		sprintf(bufferPointer, "OK %d ", nMsg);
+		shift = 2 + strlen(mid) + 2;
+		bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+		for (int i = atoi(args[2]); i < atoi(args[2]) + nMsg; i++) {
+			//MID
+			if (5 >= MAX_INPUT_SIZE - totalShifts) {
+				sendTCPMessage(newTcpSocket, buffer, strlen(buffer));
+				memset(buffer, 0, MAX_INPUT_SIZE);
+				bufferPointer = buffer;
+				totalShifts = 0;
+			}
+			if (i < 10) sprintf(mid, "000%d", i);
+			else if (i < 100) sprintf(mid, "00%d", i);
+        	else if (nMsg < 1000) sprintf(mid, "0%d", i);
+        	else sprintf(mid, "%d", i);
+			sprintf(bufferPointer, "%s ", mid);
+			shift = strlen(mid) + 1;
+			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+			//UID
+			if (6 >= MAX_INPUT_SIZE - totalShifts) {
+				sendTCPMessage(newTcpSocket, buffer, strlen(buffer));
+				memset(buffer, 0, MAX_INPUT_SIZE);
+				bufferPointer = buffer;
+				totalShifts = 0;
+			}
+			sprintf(bufferPointer, "%s ", args[0]);
+			shift = strlen(args[0]) + 1;
+			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+			//TEXTSIZE
+		}
+	}
+
+	if (mode == verbose) fprintf(stdout, "RTV, UID: %s, GID: %s, IP: %d, PORT: %d\n", args[0], args[1], addr.sin_addr.s_addr, addr.sin_port);
+
+    sendTCPMessage(newTcpSocket, buffer, strlen(buffer));
 }

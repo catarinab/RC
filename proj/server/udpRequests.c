@@ -125,7 +125,7 @@ void gls() {
             if (!(ptr = fopen(pathname, "r"))) exit(1);
             if (0 >= fread(gname, sizeof(char), MAX_INFO, ptr)) exit(1);
             fclose(ptr);
-            nMsg = countMessages(gid);
+            nMsg = countMessages(gid, 0);
             if (nMsg < 10) sprintf(mid, "000%d", nMsg);
             else if (nMsg < 100) sprintf(mid, "00%d", nMsg);
             else if (nMsg < 1000) sprintf(mid, "0%d", nMsg);
@@ -218,7 +218,7 @@ void glm() {
                 if (!(ptr = fopen(pathname, "r"))) exit(1);
                 if (0 >= fread(gname, sizeof(char), MAX_INFO, ptr)) exit(1);
                 fclose(ptr);
-                nMsg = countMessages(gid);
+                nMsg = countMessages(gid, 0);
                 if (nMsg < 10) sprintf(mid, "000%d", nMsg);
                 else if (nMsg < 100) sprintf(mid, "00%d", nMsg);
                 else if (nMsg < 1000) sprintf(mid, "0%d", nMsg);

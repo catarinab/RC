@@ -83,6 +83,7 @@ void receiveCommands() {
                         pst();
                     }
                     else if (strcmp(op, "RTV") == 0) {
+                        rtv();
                     }
                     else {
                         sendTCPMessage(newTcpSocket, "ERR\n", 4);
