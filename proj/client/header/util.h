@@ -28,3 +28,4 @@ int verifySession();
 void resetUser();
 void resetGroup();
 int verifyGroupInfo(char gid[], int flag, char gname[]);
+int verifyName(char buff[], int beg, int end, char err[]);

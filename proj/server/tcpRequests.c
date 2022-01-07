@@ -50,14 +50,28 @@ void receiveTCPMessage(int socket, char *ptr, int nleft) {
 	}
 }
 
+char * movePointer(char *table, int tableSize , char *pointer, int *totalShifts, int shift) {
+	if ((*totalShifts += shift) < tableSize) {
+		pointer = pointer + shift * sizeof(char);
+	}
+	else {
+		*totalShifts -= tableSize;
+		receiveTCPMessage(newTcpSocket, table, tableSize);
+		pointer = table + (*totalShifts) * sizeof(char);
+	}
+	return pointer;
+}
+
 void uls() {
 	DIR *d;
 	FILE *ptr;
     struct dirent *dir;
-	int numTokens;
-    char args[1][MAX_INFO], reply[30], pathname[20], gname[MAX_INFO], uid[MAX_INFO];
+	int numTokens, shift, totalShifts = 0;
+    char args[1][MAX_INFO], reply[30], pathname[20], gname[MAX_INFO], uid[MAX_INFO], *bufferPointer = buffer;
 
-    numTokens = sscanf(buffer, "%s", args[0]);
+	shift = 4;
+	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+    numTokens = sscanf(bufferPointer, "%s\n", args[0]);
 	memset(buffer, 0, MAX_INPUT_SIZE);
     strcpy(buffer, "RUL ");
     if (numTokens != 1) strcat(buffer, "NOK\n");
@@ -93,24 +107,13 @@ void uls() {
     sendTCPMessage(newTcpSocket, buffer, strlen(buffer));
 }
 
-char * movePointer(char *table, int tableSize , char *pointer, int *totalShifts, int shift) {
-	if ((*totalShifts += shift) < tableSize) {
-		pointer = pointer + shift * sizeof(char);
-	}
-	else {
-		*totalShifts -= tableSize;
-		receiveTCPMessage(newTcpSocket, table, tableSize);
-		pointer = table + (*totalShifts) * sizeof(char);
-	}
-	return pointer;
-}
-
 void pst() {
 	FILE *ptr;
 	int numTokens, msgSize, fileSize, shift, totalShifts = 0, errFlag = 0;
     char args[2][MAX_INFO], uid[6], gid[3], mid[5], reply[REPLY_SIZE] = "RPT ", message[MAX_MESSAGE_SIZE], pathname[45], *bufferPointer = buffer;
 
-	printf("%s\n", bufferPointer);
+	shift = 4;
+	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
 	numTokens = sscanf(bufferPointer, "%s %s ", args[0], args[1]);
 	shift = strlen(args[0]) + strlen(args[1]) + 2;
 	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
@@ -155,6 +158,7 @@ void pst() {
 									break;
 								}
 								fileSize -= shift;
+								memset(buffer, 0, MAX_INPUT_SIZE);
 								receiveTCPMessage(newTcpSocket, buffer, MAX_INPUT_SIZE);
 								totalShifts = 0;
 								bufferPointer = buffer;

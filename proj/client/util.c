@@ -40,6 +40,16 @@ int verifyAlnum(char buff[], int beg, int end, char err[]) {
 	return 0;
 }
 
+int verifyName(char buff[], int beg, int end, char err[]) {
+	for (int i = beg; i < end; i ++){
+		if (isalnum(buff[i]) == 0 && buff[i] != '-' && buff[i] != '_') {
+			fprintf(stderr, "error: %s\n", err);
+			return 1;
+		}
+	}
+	return 0;
+}
+
 int verifyAlpha(char buff[], int beg, int end, char err[]) {
 	for (int i = beg; i < end; i ++){
 		if (isalpha(buff[i]) == 0) {
@@ -83,12 +93,7 @@ int verifyGroupInfo(char gid[], int flag, char gname[]) {
 			errFlag = 1;
 		}
 		if (!errFlag) {
-			for (int i = 0; i < strlen(gname); i ++){
-				if (isalnum(gname[i]) == 0 && gname[i] != '-' && gname[i] != '_') {
-					fprintf(stderr, "error: Group Name must contain alphanumeric characters only\n");
-					errFlag = 1;
-				}
-			}
+			errFlag =  verifyName(gname, 0, strlen(gname), "Gname must contain alphanumeric or '-' '_' characters only");
 		}
 	}
 	return errFlag;

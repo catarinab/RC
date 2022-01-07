@@ -96,7 +96,7 @@ void post() {
 		FILE *ptr;
 		int lenFname, lenFile;
 		
-		if (verifyAlnum(args[0], 0, (lenFname = strlen(args[0])) - 5, "Fname must contain alphanumeric characters only") || verifyAlpha(args[0], lenFname - 3, lenFname, "Fname must contain a valid extension")) {
+		if (verifyName(args[0], 0, (lenFname = strlen(args[0])) - 4, "Fname must contain alphanumeric or '-' '_' characters only") || verifyAlpha(args[0], lenFname - 3, lenFname, "Fname must contain a valid extension")) {
 			close(tcpSocket);
 			return;
 		}
