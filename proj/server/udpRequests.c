@@ -12,9 +12,19 @@
 #include <dirent.h>
 #include "header/util.h"
 
+void errorUdpSocket() {
+	fprintf(stderr, "Error creating UDP Socket.\n");
+	exit(1);
+}
+
+void errorSendingMsg() {
+    fprintf(stderr, "Error Sending UDP Message.\n");
+	exit(1);
+}
+
 void createUdpSocket() {
 	udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
-	if (udpSocket == -1) exit(1);
+	if (udpSocket == -1) errorUdpSocket();
 
 	memset(&udpHints, 0, sizeof(udpHints));
 	udpHints.ai_family = AF_INET;
@@ -22,10 +32,10 @@ void createUdpSocket() {
     udpHints.ai_flags = AI_PASSIVE;
     
 	errcode = getaddrinfo(NULL, port, &udpHints, &udpRes);
-	if (errcode == -1) exit(1);
+	if (errcode == -1) errorUdpSocket();
     
     n = bind(udpSocket, udpRes->ai_addr, udpRes->ai_addrlen);
-    if (n == 1) exit(1);
+    if (n == 1) errorUdpSocket();
 }
 
 void reg() {
@@ -37,14 +47,17 @@ void reg() {
     else if (!(verifyUserInfo(args[0], args[1]))) strcat(reply, "NOK\n");
     else if (checkUserExists(args[0])) strcat(reply, "DUP\n");
     else {
-        if (!(createUserDir(args[0], args[1]))) strcat(reply, "NOK\n");
-        else strcat(reply, "OK\n");
+        if (!(createUserDir(args[0], args[1]))) {
+            fprintf(stderr, "error: User %s Directory create unsuccessful.\n", args[0]);
+			exit(1);
+        }
+        strcat(reply, "OK\n");
     }
 
     if (mode == verbose) fprintf(stdout, "REG, UID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
-	if (n == -1) exit(1);
+	if (n == -1) errorSendingMsg();
 }
 
 void unr() {
@@ -57,14 +70,17 @@ void unr() {
     else if (!(checkUserExists(args[0]))) strcat(reply, "NOK\n");
     else if (!(checkPass(args[0], args[1]))) strcat(reply, "NOK\n");
     else {
-        if (!(delUserDir(args[0]))) strcat(reply, "NOK\n");
-        else strcat(reply, "OK\n");
+        if (!(delUserDir(args[0]))) {
+            fprintf(stderr, "error: User %s directory delete unsuccessful.\n", args[0]);
+		    exit(1);
+        }
+        strcat(reply, "OK\n");
     }
 
     if (mode == verbose) fprintf(stdout, "UNR, UID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
-	if (n == -1) exit(1);
+	if (n == -1) errorSendingMsg();
 }
 
 void login() {
@@ -77,14 +93,17 @@ void login() {
     else if (!(checkUserExists(args[0]))) strcat(reply, "NOK\n");
     else if (!(checkPass(args[0], args[1]))) strcat(reply, "NOK\n");
     else {
-        if (!(createLogFile(args[0]))) strcat(reply, "NOK\n");
-        else strcat(reply, "OK\n");
+        if (!(createLogFile(args[0]))) {
+            fprintf(stderr, "error: User %s login file create unsuccessful.\n", args[0]);
+			exit(1);
+        }
+        strcat(reply, "OK\n");
     }
 
     if (mode == verbose) fprintf(stdout, "LOG, UID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
-	if (n == -1) exit(1);
+	if (n == -1) errorSendingMsg();
 }
 
 void logout() {
@@ -98,14 +117,17 @@ void logout() {
     else if (!(checkPass(args[0], args[1]))) strcat(reply, "NOK\n");
     else if (!(checkLog(args[0]))) strcat(reply, "NOK\n");
     else {
-        if (!(deleteLogFile(args[0]))) strcat(reply, "NOK\n");
-        else strcat(reply, "OK\n");
+        if (!(deleteLogFile(args[0]))) {
+            fprintf(stderr, "error: User %s login file delete unsuccessful.\n", args[0]);
+			exit(1);
+        }
+        strcat(reply, "OK\n");
     }
 
     if (mode == verbose) fprintf(stdout, "OUT, UID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
-	if (n == -1) exit(1);
+	if (n == -1) errorSendingMsg();
 }
 
 void gls() {
@@ -139,7 +161,7 @@ void gls() {
     if (mode == verbose) fprintf(stdout, "GLS, IP: %d, PORT: %d\n", addr.sin_addr.s_addr, addr.sin_port);
 
     n = sendto(udpSocket, buffer, strlen(buffer), 0, (struct sockaddr*) &addr, addrlen);
-	if (n == -1) exit(1);
+	if (n == -1) errorSendingMsg();
 }
 
 void gsr() {
@@ -158,17 +180,23 @@ void gsr() {
             nDir = countGroups();
             if (nDir < 10) sprintf(gid, "0%d", nDir + 1);
             else sprintf(gid, "%d", nDir + 1);
-            if (!(createGroupDir(gid, args[2]))) strcat(reply, "NOK\n");
+            if (!(createGroupDir(gid, args[2]))) {
+                fprintf(stderr, "error: Group %s directory create unsuccessful.\n", args[1]);
+			    exit(1);
+            }
             strcpy(args[1], gid);
         }
-        if (!(createSubFile(args[0], args[1]))) strcat(reply, "NOK\n");
-        else strcat(reply, "OK\n");
+        if (!(createSubFile(args[0], args[1]))) {
+            fprintf(stderr, "error: User %s subscription file to group %s create unsuccessful.\n", args[0], args[1]);
+			exit(1);
+        }
+        strcat(reply, "OK\n");
     }
 
     if (mode == verbose) fprintf(stdout, "GSR, UID: %s, GID: %s, IP: %d, PORT: %d\n", args[0], args[1], addr.sin_addr.s_addr, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
-	if (n == -1) exit(1);
+	if (n == -1) errorSendingMsg();
 }
 
 void gur() {
@@ -184,14 +212,17 @@ void gur() {
     else if (strcmp(args[0], "00") == 0) strcat(reply, "NOK\n");
     else if (checkGroup(args[1]) == 0) strcat(reply, "E_GRP\n");
     else {
-        if (!(deleteSubFile(args[0], args[1]))) strcat(reply, "NOK\n");
-        else strcat(reply, "OK\n");
+        if (!(deleteSubFile(args[0], args[1]))) {
+            fprintf(stderr, "error: User %s subscription file to group %s delete unsuccessful.\n", args[0], args[1]);
+			exit(1);
+        }
+        strcat(reply, "OK\n");
     }
 
     if (mode == verbose) fprintf(stdout, "GUR, UID: %s, GID: %s, IP: %d, PORT: %d\n", args[0], args[1], addr.sin_addr.s_addr, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
-	if (n == -1) exit(1);   
+	if (n == -1) errorSendingMsg();
 }
 
 void glm() {
@@ -236,5 +267,5 @@ void glm() {
     if (mode == verbose) fprintf(stdout, "GUR, UID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
 
     n = sendto(udpSocket, buffer, strlen(buffer), 0, (struct sockaddr*) &addr, addrlen);
-	if (n == -1) exit(1);
+	if (n == -1) errorSendingMsg();
 }

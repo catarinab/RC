@@ -194,7 +194,7 @@ void gl() {
 		int n = atoi(args[1]);
 		for (int i = 0; i < n; i++) {
 			numTokens = sscanf(buffer, " %s %s %s %[^\n]", args[0], args[1], args[2], buffer);
-			fprintf(stdout, "Group ID: %s, Group Name: %s\n", args[0], args[1]);
+			fprintf(stdout, "Group ID: %s, Group Name: %s, Last Message: %s\n", args[0], args[1], args[2]);
 		}
 	}
 }
@@ -320,7 +320,7 @@ void mgl() {
 		int n = atoi(args[1]);
 		for (int i = 0; i < n; i++) {
 			numTokens = sscanf(buffer, " %s %s %s %[^\n]", args[0], args[1], args[2], buffer);
-			fprintf(stdout, "Group ID: %s, Group Name: %s\n", args[0], args[1]);
+			fprintf(stdout, "Group ID: %s, Group Name: %s, Last Message: %s\n", args[0], args[1], args[2]);
 		}
 	}	
 }

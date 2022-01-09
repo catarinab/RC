@@ -18,3 +18,4 @@ void gls();
 void gsr();
 void gur();
 void glm();
+void errorSendingMsg();

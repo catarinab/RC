@@ -80,19 +80,20 @@ int countGroups() {
 }
 
 int countMessages(char *gid, int mid) {
-    int nMsg = mid;
+    int nMsg = 0;
     char pathname[20];
 
-    if (nMsg < 9) sprintf(pathname, "GROUPS/%s/MSG/000%d", gid, (nMsg + 1));
-    else if (nMsg < 99) sprintf(pathname, "GROUPS/%s/MSG/00%d", gid, (nMsg + 1));
-    else if (nMsg < 999) sprintf(pathname, "GROUPS/%s/MSG/0%d", gid, (nMsg + 1));
-    else sprintf(pathname, "GROUPS/%s/MSG/%d", (nMsg + 1));
+    if (mid < 9) sprintf(pathname, "GROUPS/%s/MSG/000%d", gid, (mid + 1));
+    else if (mid < 99) sprintf(pathname, "GROUPS/%s/MSG/00%d", gid, (mid + 1));
+    else if (mid < 999) sprintf(pathname, "GROUPS/%s/MSG/0%d", gid, (mid + 1));
+    else sprintf(pathname, "GROUPS/%s/MSG/%d", (mid + 1));
     while (access(pathname, F_OK) == 0) {
         nMsg++;
-        if (nMsg < 9) sprintf(pathname, "GROUPS/%s/MSG/000%d", gid, (nMsg + 1));
-        else if (nMsg < 99) sprintf(pathname, "GROUPS/%s/MSG/00%d", gid, (nMsg + 1));
-        else if (nMsg < 999) sprintf(pathname, "GROUPS/%s/MSG/0%d", gid, (nMsg + 1));
-        else sprintf(pathname, "GROUPS/%s/MSG/%d", (nMsg + 1));
+        mid++;
+        if (mid < 9) sprintf(pathname, "GROUPS/%s/MSG/000%d", gid, (mid + 1));
+        else if (mid < 99) sprintf(pathname, "GROUPS/%s/MSG/00%d", gid, (mid + 1));
+        else if (mid < 999) sprintf(pathname, "GROUPS/%s/MSG/0%d", gid, (mid + 1));
+        else sprintf(pathname, "GROUPS/%s/MSG/%d", (mid + 1));
     }
     return nMsg;
 }

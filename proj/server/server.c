@@ -98,7 +98,10 @@ void receiveCommands() {
             addrlen = sizeof(addr);
             memset(buffer, 0, MAX_INPUT_SIZE);
 	        n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
-	        if (n == -1) exit(1);
+	        if (n == -1) {
+                fprintf(stderr, "Error Receiving UDP Message.\n");
+	            exit(1);
+            }
 	        numTokens = sscanf(buffer, "%s %[^\n]", op, buffer);
             //Switch
             if (numTokens < 1) {
@@ -132,7 +135,7 @@ void receiveCommands() {
                 }
                 else {
                     n = sendto(udpSocket, "ERR\n", 4, 0, udpRes->ai_addr, udpRes->ai_addrlen);
-	                if (n == -1) exit(1);
+	                if (n == -1) errorSendingMsg();
                 }
             }
         }
