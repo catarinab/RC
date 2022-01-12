@@ -151,14 +151,17 @@ char * movePointer(char *table, int tableSize , char *pointer, int *totalShifts,
 }
 
 void ret() {
-	int numTokens, n, messageSize, fileSize, totalShifts = 0, shift;
-	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE], message[MAX_MESSAGE_SIZE], directory[MAX_INFO] = "Groups/", fileName[MAX_INFO], *bufferPointer;
+	int numTokens, n, messageSize, fileSize, totalShifts = 0, bufferSize = MAX_INPUT_SIZE - 1, shift;
+	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE], message[MAX_MESSAGE_SIZE];
+	char fileName[40] = "GROUPS/", *bufferPointer, *aux;
 	FILE *ptr;
 
 	if (!(verifySession())) return;
-	if (stat(directory, &st) == -1)
-		mkdir(directory, 0777);
-	strcat(strcat(directory, selectedGroup.gid), "/");
+	if (stat(fileName, &st) == -1)
+		mkdir(fileName, 0777);
+	sprintf(fileName, "GROUPS/%s/", selectedGroup.gid);
+	if (stat(fileName, &st) == -1)
+		mkdir(fileName, 0777);
 
 	numTokens = sscanf(buffer, " %s", args[0]);
 	if (numTokens < 1) {
@@ -182,14 +185,14 @@ void ret() {
 	}
 
 	sprintf(command, "RTV %s %s %s\n", loggedUser.uid, selectedGroup.gid, args[0]);
-	memset(buffer, 0, MAX_INPUT_SIZE);
 	sendTCPMessage(tcpSocket, command, strlen(command));
-	receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
+	memset(buffer, 0, MAX_INPUT_SIZE);
+	receiveTCPMessage(tcpSocket, buffer, bufferSize);
 	
-	numTokens = sscanf(buffer, " %s %s ", args[0], args[1]);
+	numTokens = sscanf(buffer, "%s %s ", args[0], args[1]);
 	shift = strlen(args[0]) + strlen(args[1]) + 2;
 	bufferPointer = buffer;
-	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+	bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 	if (numTokens < 2 || strcmp(args[0], "RRT") != 0) fprintf(stderr, "error: Server Error.\n");
 	else if (strcmp(args[1], "NOK") == 0) fprintf(stdout, "There was a problem with the retrieve request.\n");
 	else if (strcmp(args[1], "EOF") == 0) fprintf(stdout, "There are no messages available.\n");
@@ -200,74 +203,55 @@ void ret() {
 			return;
 		}
 		shift = strlen(args[0]) + 1;
-		bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+		bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 		n = atoi(args[0]);
 		for (int i = 0; i < n; i++) {
-			numTokens = sscanf(bufferPointer, "%s %s %s ", args[0], args[1], args[2]);
-			if (numTokens < 3) {
-				receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
-				if (numTokens == 0) {
-					numTokens = sscanf(buffer, " %s %s %s ", args[0], args[1], args[2]);
-					shift = strlen(args[0]) + strlen(args[1]) + strlen(args[2]) + 3;
-				}
-				else if (numTokens == 1) {
-					numTokens = sscanf(buffer, " %s %s ", args[1], args[2]);
-					shift = strlen(args[1]) + strlen(args[2]) + 2;
-				}
-				else {
-					numTokens = sscanf(buffer, " %s ", args[2]);
-					shift =  strlen(args[2]) + 1;
-				}
-				totalShifts = 0;
+			if ((shift = bufferSize - totalShifts) < 15) {
+				aux = strdup(bufferPointer);
+				memset(buffer, 0, MAX_INPUT_SIZE);
+				strcpy(buffer, aux);
+				free(aux);
 				bufferPointer = buffer;
-				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+				totalShifts = 0;
+				bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
+				receiveTCPMessage(tcpSocket, bufferPointer, bufferSize - shift);
 			}
-			else {
-				shift = strlen(args[0]) + strlen(args[1]) + strlen(args[2]) + 3;
-				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
-			}
+			numTokens = sscanf(bufferPointer, "%s %s %s ", args[0], args[1], args[2]);
+			shift = strlen(args[0]) + strlen(args[1]) + strlen(args[2]) + 3;
+			bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 			messageSize = atoi(args[2]);
 			memset(message, 0, MAX_MESSAGE_SIZE);
-			if (messageSize > MAX_INPUT_SIZE - totalShifts) {
+			if (messageSize > bufferSize - totalShifts) {
 				strcpy(message, bufferPointer);
-				receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
+				memset(buffer, 0, MAX_INPUT_SIZE);
+				receiveTCPMessage(tcpSocket, buffer, bufferSize);
 				strncpy(&message[strlen(message)], buffer, (shift = messageSize - strlen(message)));
 				totalShifts = 0;
 				bufferPointer = buffer;
-				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift + 1);
+				bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift + 1);
 			}
 			else {
 				strncpy(message, bufferPointer, messageSize);
-				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, messageSize + 1);
+				bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, messageSize + 1);
 			}
 			fprintf(stdout, "Message of MID %s, posted by user with UID %s: \"%s\"", args[0], args[1], message);
 			if (bufferPointer[0] == '/') {
-				numTokens = sscanf(bufferPointer, "/ %s %s ", args[0], args[1]);
-				if (numTokens < 2) {
-					receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
-					if (buffer[0] == '/') shift = 2;
-					else if (buffer[0] == ' ') shift = 1;
-
-					if (numTokens == 0) {
-						numTokens = sscanf(buffer, " / %s %s ", args[0], args[1]);
-						shift += strlen(args[0]) + strlen(args[1]) + 2;
-					}
-					else {
-						numTokens = sscanf(buffer, "  %s ", args[1]);
-						shift +=  strlen(args[1]) + 1;
-					}
-					totalShifts = 0;
+				if ((shift = bufferSize - totalShifts) < 37) {
+					aux = strdup(bufferPointer);
+					memset(buffer, 0, MAX_INPUT_SIZE);
+					strcpy(buffer, aux);
+					free(aux);
 					bufferPointer = buffer;
-					bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+					totalShifts = 0;
+					bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
+					receiveTCPMessage(tcpSocket, bufferPointer, bufferSize - shift);
 				}
-				else {
-					shift = strlen(args[0]) + strlen(args[1]) + 4;
-					bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
-				}
+				numTokens = sscanf(bufferPointer, "/ %s %s ", args[0], args[1]);
+				shift = strlen(args[0]) + strlen(args[1]) + 4;
+				bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 				fileSize = atoi(args[1]);
-				if (stat(directory, &st) == -1)
-					mkdir(directory, 0777);
-				strcat(strcpy(fileName, directory), args[0]);
+				memset(fileName, 0, MAX_INFO);
+				sprintf(fileName, "GROUPS/%s/%s", selectedGroup.gid, args[0]);
 				fprintf(stdout, " (associated with the file %s)", fileName);
 				if (!(ptr = fopen(fileName, "wb"))) {
 					fprintf(stderr, "error: Can't create the file %s.\n", fileName);
@@ -275,13 +259,14 @@ void ret() {
 					return;
 				}
 				while (fileSize > 0) {
-					if (fileSize >= MAX_INPUT_SIZE - totalShifts) {
-						if (fwrite(bufferPointer, sizeof(char), (shift = MAX_INPUT_SIZE - totalShifts), ptr) != shift) {
+					if (fileSize >= bufferSize - totalShifts) {
+						if (fwrite(bufferPointer, sizeof(char), (shift = bufferSize - totalShifts), ptr) != shift) {
 							fprintf(stderr, "error: Can't write to the file %s.\n", fileName); 
 							exit(1);
 						}
 						fileSize -= shift;
-						receiveTCPMessage(tcpSocket, buffer, MAX_INPUT_SIZE);
+						memset(buffer, 0, MAX_INPUT_SIZE);
+						receiveTCPMessage(tcpSocket, buffer, bufferSize);
 						totalShifts = 0;
 						bufferPointer = buffer;
 					}
@@ -290,7 +275,7 @@ void ret() {
 							fprintf(stderr, "error: Can't write to the file %s.\n", fileName); 
 							exit(1);
 						}
-						bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, fileSize + 1);
+						bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, fileSize + 1);
 						fileSize -= fileSize;
 					}
 				}

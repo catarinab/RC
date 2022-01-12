@@ -133,7 +133,7 @@ void logout() {
 void gls() {
     FILE * ptr;
     int nDir, nMsg = 0;
-    char pathname[20], gid[3], gname[MAX_INFO], mid[5], reply[33];
+    char pathname[25], gid[3], gname[MAX_INFO], mid[5], reply[33];
     
     nDir = countGroups();
     memset(buffer, 0, MAX_INPUT_SIZE);
@@ -203,7 +203,6 @@ void gur() {
     int numTokens;
     char args[2][MAX_INFO], reply[REPLY_SIZE] = "RGU ";
 
-    printf(buffer);
     numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
     printf("%s %s\n", args[0], args[1]);
     if (numTokens != 2) strcat(reply, "NOK\n");
@@ -228,7 +227,7 @@ void gur() {
 void glm() {
     FILE * ptr;
     int numTokens, nGroups, nSubTo = 0, nMsg;
-    char args[1][MAX_INFO], pathname[20], gid[3], gname[MAX_INFO], mid[5], reply[33];
+    char args[1][MAX_INFO], pathname[40], gid[3], gname[MAX_INFO], mid[5], reply[33];
 
     numTokens = sscanf(buffer, "%s", args[0]);
     if (numTokens != 1) strcat(reply, "NOK\n");

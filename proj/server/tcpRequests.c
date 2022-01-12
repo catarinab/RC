@@ -77,11 +77,11 @@ void uls() {
 	DIR *d;
 	FILE *ptr;
     struct dirent *dir;
-	int numTokens, shift, totalShifts = 0;
+	int numTokens, bufferSize = MAX_INPUT_SIZE - 1, shift, totalShifts = 0;
     char args[1][MAX_INFO], reply[30], pathname[20], gname[MAX_INFO], uid[MAX_INFO], *bufferPointer = buffer;
 
 	shift = 4;
-	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+	bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
     numTokens = sscanf(bufferPointer, "%s\n", args[0]);
 	memset(buffer, 0, MAX_INPUT_SIZE);
     strcpy(buffer, "RUL ");
@@ -129,14 +129,14 @@ void uls() {
 
 void pst() {
 	FILE *ptr;
-	int numTokens, nMsgize, fileSize, shift, totalShifts = 0, errFlag = 0;
+	int numTokens, bufferSize = MAX_INPUT_SIZE - 1, msgSize, fileSize, shift, totalShifts = 0, errFlag = 0;
     char args[2][MAX_INFO], uid[6], gid[3], mid[5] = "0000", reply[REPLY_SIZE] = "RPT ", message[MAX_MESSAGE_SIZE], pathname[45], *bufferPointer = buffer;
 
 	shift = 4;
-	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+	bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 	numTokens = sscanf(bufferPointer, "%s %s ", args[0], args[1]);
 	shift = strlen(args[0]) + strlen(args[1]) + 2;
-	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+	bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 	if (numTokens != 2) strcat(reply, "NOK\n");
 	else if (!(checkUser(args[0]))) strcat(reply, "NOK\n");
 	else if (!(checkLog(args[0]))) strcat(reply, "NOK\n");
@@ -150,13 +150,13 @@ void pst() {
 		memset(args[1], 0, MAX_INFO);
 		numTokens = sscanf(bufferPointer, "%s ", args[0]);
 		shift = strlen(args[0]) + 1;
-		bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+		bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 		if (numTokens != 1) strcat(reply, "NOK\n");
 		else {
-			nMsgize = atoi(args[0]);
+			msgSize = atoi(args[0]);
 			memset(message, 0, MAX_MESSAGE_SIZE);
-			strncpy(message, bufferPointer, nMsgize);
-			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, nMsgize);
+			strncpy(message, bufferPointer, msgSize);
+			bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, msgSize);
 			if (!(createMsgDir(uid, gid, mid, message))) {
 				fprintf(stderr, "error: Message %s directory create unsuccessful.\n", mid);
 				exit(1);
@@ -165,7 +165,7 @@ void pst() {
 			memset(args[1], 0, MAX_INFO);
 			numTokens = sscanf(bufferPointer, " %s %s ", args[0], args[1]);
 			shift = strlen(args[0]) + strlen(args[1]) + 3;
-			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+			bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 			if (numTokens == -1 || numTokens == 0) strcat(strcat(reply, mid), "\n");
 			else if (numTokens =! 2) strcat(reply, "NOK\n");
 			else {
@@ -176,14 +176,14 @@ void pst() {
 					exit(1);
 				}
 				while (fileSize > 0) {
-					if (fileSize >= MAX_INPUT_SIZE - totalShifts) {
-						if (fwrite(bufferPointer, sizeof(char), (shift = MAX_INPUT_SIZE - totalShifts), ptr) != shift) {
+					if (fileSize >= bufferSize - totalShifts) {
+						if (fwrite(bufferPointer, sizeof(char), (shift = bufferSize - totalShifts), ptr) != shift) {
 							fprintf(stderr, "error: File read %s unsuccessful.\n", pathname);
 							exit(1);
 						}
 						fileSize -= shift;
 						memset(buffer, 0, MAX_INPUT_SIZE);
-						receiveTCPMessage(newTcpSocket, buffer, MAX_INPUT_SIZE);
+						receiveTCPMessage(newTcpSocket, buffer, bufferSize);
 						totalShifts = 0;
 						bufferPointer = buffer;
 					}
@@ -192,7 +192,7 @@ void pst() {
 							fprintf(stderr, "error: File read %s unsuccessful.\n", pathname);
 							exit(1);
 						}
-						bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, fileSize + 1);
+						bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, fileSize + 1);
 						fileSize -= fileSize;
 					}
 				}
@@ -211,21 +211,21 @@ void rtv() {
 	DIR *d;
     struct dirent *dir;
 	FILE *ptr;
-	int numTokens, nMsg, nMsgize, fileSize, shift, totalShifts = 0, len, file, passedVerifications = 0;
+	int numTokens, bufferSize = MAX_INPUT_SIZE - 1, nMsg, len, fileSize, shift, totalShifts = 0, file, passedVerifications = 0;
     char args[3][MAX_INFO], message[MAX_MESSAGE_SIZE], mid[5], pathname[45], *bufferPointer = buffer;
 	char fname[MAX_INFO];
 
 	shift = 4;
-	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+	bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 	numTokens = sscanf(bufferPointer, "%s %s %s\n", args[0], args[1], args[2]);
 	shift = strlen(args[0]) + strlen(args[1]) + strlen(args[2]) + 2;
-	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+	bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 	memset(buffer, 0, MAX_INPUT_SIZE);
 	strcpy(buffer, "RRT ");
 	bufferPointer = buffer;
 	totalShifts = 0;
 	shift = 4;
-	bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+	bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 	if (numTokens != 3) strcpy(bufferPointer, "NOK\n");
 	else if (!(checkUser(args[0]))) strcpy(bufferPointer, "NOK\n");
 	else if (!(checkLog(args[0]))) strcpy(bufferPointer, "NOK\n");
@@ -237,13 +237,13 @@ void rtv() {
 		nMsg = atoi(args[2]) + 19;
         if (nMsg < 100) sprintf(pathname, "GROUPS/%s/MSG/00%d", args[1], nMsg);
         else if (nMsg < 1000) sprintf(pathname, "GROUPS/%s/MSG/0%d", args[1], nMsg);
-        else sprintf(pathname, "GROUPS/%s/MSG/%d", nMsg);
+        else sprintf(pathname, "GROUPS/%s/MSG/%d", args[1], nMsg);
     	if (access(pathname, F_OK) == 0) nMsg = 20;
 		else nMsg = countMessages(args[1], nMsg - 19) + 1;
 		sprintf(mid, "%d", nMsg);
 		sprintf(bufferPointer, "OK %d", nMsg);
 		shift = 2 + strlen(mid) + 1;
-		bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+		bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 		for (int i = atoi(args[2]); i < atoi(args[2]) + nMsg; i++) {
 			//MID
 			if (i < 10) sprintf(mid, "000%d", i);
@@ -252,11 +252,11 @@ void rtv() {
         	else sprintf(mid, "%d", i);
 			sprintf(bufferPointer, " %s ", mid);
 			shift = strlen(mid) + 2;
-			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+			bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 			//UID
 			sprintf(bufferPointer, "%s ", args[0]);
 			shift = strlen(args[0]) + 1;
-			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+			bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 			//TEXTSIZE
 			sprintf(pathname, "GROUPS/%s/MSG/%s/T E X T.txt", args[1], mid);
 			if (!(ptr = fopen(pathname, "rb"))) {
@@ -268,15 +268,15 @@ void rtv() {
 			fseek(ptr, 0L, SEEK_SET);
 			sprintf(bufferPointer, "%d ", len);
 			shift = strlen(bufferPointer);
-			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+			bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 			//MESSAGE
-			if (len != fread(bufferPointer, sizeof(char), MAX_INPUT_SIZE, ptr)) {
+			if (len != fread(bufferPointer, sizeof(char), bufferSize, ptr)) {
 				fprintf(stderr, "error: File read %s unsuccessful.\n", pathname);
 				exit(1);
 			}
 			fclose(ptr);
 			shift = len;
-			bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
+			bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 			//FILE
 			file = 0;
 			memset(pathname, 0, 45);
@@ -314,8 +314,8 @@ void rtv() {
 				fseek(ptr, 0L, SEEK_SET);
 				sprintf(bufferPointer, " / %s %d ", fname, len);
 				shift = strlen(bufferPointer);
-				bufferPointer = movePointer(buffer, MAX_INPUT_SIZE, bufferPointer, &totalShifts, shift);
-				while (0 < (len = fread(bufferPointer, sizeof(char), MAX_INPUT_SIZE - totalShifts, ptr))) {
+				bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
+				while (0 < (len = fread(bufferPointer, sizeof(char), bufferSize - totalShifts, ptr))) {
 					sendTCPMessage(newTcpSocket, buffer, totalShifts + len);
 					memset(buffer, 0, MAX_INPUT_SIZE);
 					bufferPointer = buffer;

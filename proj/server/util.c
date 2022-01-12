@@ -86,14 +86,14 @@ int countMessages(char *gid, int mid) {
     if (mid < 9) sprintf(pathname, "GROUPS/%s/MSG/000%d", gid, (mid + 1));
     else if (mid < 99) sprintf(pathname, "GROUPS/%s/MSG/00%d", gid, (mid + 1));
     else if (mid < 999) sprintf(pathname, "GROUPS/%s/MSG/0%d", gid, (mid + 1));
-    else sprintf(pathname, "GROUPS/%s/MSG/%d", (mid + 1));
+    else sprintf(pathname, "GROUPS/%s/MSG/%d", gid, (mid + 1));
     while (access(pathname, F_OK) == 0) {
         nMsg++;
         mid++;
         if (mid < 9) sprintf(pathname, "GROUPS/%s/MSG/000%d", gid, (mid + 1));
         else if (mid < 99) sprintf(pathname, "GROUPS/%s/MSG/00%d", gid, (mid + 1));
         else if (mid < 999) sprintf(pathname, "GROUPS/%s/MSG/0%d", gid, (mid + 1));
-        else sprintf(pathname, "GROUPS/%s/MSG/%d", (mid + 1));
+        else sprintf(pathname, "GROUPS/%s/MSG/%d", gid, (mid + 1));
     }
     return nMsg;
 }

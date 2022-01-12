@@ -71,8 +71,8 @@ void receiveCommands() {
             if ((child = fork()) == 0) {
                 close(tcpSocket);
                 memset(buffer, 0, MAX_INPUT_SIZE);
-                receiveTCPMessage(newTcpSocket, buffer, MAX_INPUT_SIZE);
-                numTokens = sscanf(buffer, "%s ", op, buffer);
+                receiveTCPMessage(newTcpSocket, buffer, MAX_INPUT_SIZE - 1);
+                numTokens = sscanf(buffer, "%s ", op);
                 //Switch
                 if (numTokens < 1) sendTCPMessage(newTcpSocket, "ERR\n", 4);
                 else {
