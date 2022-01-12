@@ -334,5 +334,6 @@ void rtv() {
 	}
 
 	if (mode == verbose) fprintf(stdout, "RTV, UID: %s, GID: %s, IP: %d, PORT: %d\n", args[0], args[1], addr.sin_addr.s_addr, addr.sin_port);
+	
 	if (!passedVerifications) sendTCPMessage(newTcpSocket, buffer, strlen(buffer));
 }

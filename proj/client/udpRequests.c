@@ -22,6 +22,33 @@ void createUdpSocket() {
 	if (errcode == -1) exit(1);
 }
 
+int timerON() {
+	struct timeval tmout;
+	memset((char *)&tmout,0,sizeof(tmout)); /* clear time structure */
+	tmout.tv_sec=15; /* Wait for 15 sec for a reply from server. */
+	return(setsockopt(udpSocket, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *)&tmout,sizeof(struct timeval)));
+}
+
+int timerOFF() {
+	struct timeval tmout;
+	memset((char *)&tmout,0,sizeof(tmout)); /* clear time structure */
+	return(setsockopt(udpSocket, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *)&tmout,sizeof(struct timeval)));
+}
+
+void receiveUDPMessage() {
+	addrlen = sizeof(addr);
+	if(timerON() < 0) {
+		fprintf(stderr, "error: UDP File Descriptor problem.\n");
+		exit(1);
+	}
+	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
+	if (n < 0) {
+		fprintf(stderr, "error: UDP File Descriptor problem.\n");
+		exit(1);
+	}
+	timerOFF();
+}
+
 
 void reg() {
 	int numTokens;
@@ -41,9 +68,7 @@ void reg() {
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
 
-	addrlen = sizeof(addr);
-	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
-	if (n == -1) exit(1);
+	receiveUDPMessage();
 
 	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "RRG") != 0){
@@ -77,9 +102,7 @@ void unr() {
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
 
-	addrlen = sizeof(addr);
-	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
-	if (n == -1) exit(1);
+	receiveUDPMessage();
 
 	numTokens = sscanf(buffer, "  %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "RUN") != 0){
@@ -116,9 +139,7 @@ void login() {
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
 
-	addrlen = sizeof(addr);
-	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
-	if (n == -1) exit(1);
+	receiveUDPMessage();
 
 	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "RLO") != 0){
@@ -151,9 +172,7 @@ void logout() {
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
 
-	addrlen = sizeof(addr);
-	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
-	if (n == -1) exit(1);
+	receiveUDPMessage();
 
 	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "ROU") != 0){
@@ -180,9 +199,7 @@ void gl() {
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
 
-	addrlen = sizeof(addr);
-	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
-	if (n == -1) exit(1);
+	receiveUDPMessage();
 
 	numTokens = sscanf(buffer, " %s %s %[^\n]", args[0], args[1], buffer);
 	if (numTokens < 2 || strcmp(args[0], "RGL") != 0){
@@ -227,9 +244,7 @@ void sub() {
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
 
-	addrlen = sizeof(addr);
-	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
-	if (n == -1) exit(1);
+	receiveUDPMessage();
 
 	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "RGS") != 0){
@@ -274,9 +289,7 @@ void unsub() {
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
 
-	addrlen = sizeof(addr);
-	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
-	if (n == -1) exit(1);
+	receiveUDPMessage();
 
 	numTokens = sscanf(buffer, " %s %s", args[0], args[1]);
 	if (numTokens != 2 || strcmp(args[0], "RGU") != 0){
@@ -305,9 +318,7 @@ void mgl() {
 	n = sendto(udpSocket, command, strlen(command), 0, udpRes->ai_addr, udpRes->ai_addrlen);
 	if (n == -1) exit(1);
 
-	addrlen = sizeof(addr);
-	n = recvfrom(udpSocket, buffer, MAX_INPUT_SIZE, 0, (struct sockaddr *) &addr, &addrlen);
-	if (n == -1) exit(1);
+	receiveUDPMessage();
 
 	numTokens = sscanf(buffer, " %s %s %[^\n]", args[0], args[1], buffer);
 	if (numTokens < 2 || strcmp(args[0], "RGM") != 0){
