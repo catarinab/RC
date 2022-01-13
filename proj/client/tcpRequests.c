@@ -1,4 +1,15 @@
+/*
+ * Ficheiro: constants.h
+ * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
+ * Descricao: [Projeto de RC] Development, in C language, of the user commands that receive information from the server by TCP.
+*/
+
+/*
+ * Libraries:
+*/
+
 #define _GNU_SOURCE
+
 #include "header/util.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +22,16 @@
 
 struct stat st = {0};
 
+/*
+ * Functions:
+*/
+
+/*
+ * Function: createTCPSocket
+ * ----------------------------
+ *   Creates the TCP file descriptor.
+ *
+ */
 void createTCPSocket() {
 	tcpSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (tcpSocket == -1) exit(1);
@@ -21,10 +42,20 @@ void createTCPSocket() {
 
 	errcode = getaddrinfo(ip, port, &tcpHints, &tcpRes);
 	if (errcode == -1) exit(1);
-	n=connect(tcpSocket,tcpRes->ai_addr,tcpRes->ai_addrlen);
-	if(n==-1)exit(1);
+	n = connect(tcpSocket, tcpRes->ai_addr, tcpRes->ai_addrlen);
+	if (n == -1) exit(1);
 }
 
+/*
+ * Function: sendTCPMessage
+ * ----------------------------
+ *   Sends information to the server in the TCP file descriptor. 
+ *   
+ *   socket: TCP file descriptor
+ *   ptr: pointer to the buffer where the information will be stored
+ *   nleft: size of the buffer or how much information we want to send.
+ *
+ */
 void sendTCPMessage(int socket, char *ptr, int nleft) {
 	while (nleft > 0) {
 		n = write(socket, ptr, nleft);
@@ -35,6 +66,17 @@ void sendTCPMessage(int socket, char *ptr, int nleft) {
 	}
 }
 
+
+/*
+ * Function: receiveTCPMessage
+ * ----------------------------
+ *   Receives information from the server in the TCP file descriptor. 
+ *
+ *   socket: TCP file descriptor
+ *   ptr: pointer to the buffer where the information will be stored
+ *   nleft: size of the buffer or how much information we want to receive.
+ *
+ */
 void receiveTCPMessage(int socket, char *ptr, int nleft) {
 	while (nleft > 0) {
 		n = read(socket, ptr, nleft);
@@ -45,10 +87,16 @@ void receiveTCPMessage(int socket, char *ptr, int nleft) {
 	}
 }
 
+/*
+ * Function: reg
+ * ----------------------------
+ *   Executes the ulist command.
+ *
+ */
 void ul() {
 	int numTokens;
 	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE];
-	char responseBuffer[MAX_USER_SUB], groupName[MAX_INFO]; // fazer as contas do tamanho
+	char responseBuffer[MAX_USER_SUB], groupName[MAX_INFO];
 	if (!selectedGroup.selected) {
 		fprintf(stdout, "warning: No group selected.\n");
 		return;
@@ -72,6 +120,12 @@ void ul() {
 	else exit(1);
 }
 
+/*
+ * Function: post
+ * ----------------------------
+ *   Executes the post command.
+ *
+ */
 void post() {
 	int numTokens, lenMessage;
 	char args[2][MAX_INFO], command[MAX_COMMAND_SIZE], *len;
@@ -138,6 +192,19 @@ void post() {
 	else fprintf(stdout, "The message was successfully posted with MID %s.\n", args[1]);
 }
 
+/*
+ * Function: movePointer
+ * ----------------------------
+ *   Moves a given pointer.
+ *
+ *   table: array that is being pointed to.
+ *   tableSize: size of the array.
+ *   pointer: the pointer to move.
+ *   totalShifts: how many shifts were made to the pointer already.
+ *   shift: the shift we want to move.
+ *
+ *   returns: the moved pointer.
+ */
 char * movePointer(char *table, int tableSize , char *pointer, int *totalShifts, int shift) {
 	if ((*totalShifts += shift) < tableSize) {
 		pointer = pointer + shift * sizeof(char);
@@ -150,6 +217,12 @@ char * movePointer(char *table, int tableSize , char *pointer, int *totalShifts,
 	return pointer;
 }
 
+/*
+ * Function: ret
+ * ----------------------------
+ *   Executes the retrieve command.
+ *
+ */
 void ret() {
 	int numTokens, n, messageSize, fileSize, totalShifts = 0, bufferSize = MAX_INPUT_SIZE - 1, shift;
 	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE], message[MAX_MESSAGE_SIZE];

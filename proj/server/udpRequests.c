@@ -188,7 +188,7 @@ void gsr() {
     else {
         if (strcmp(args[1], "00") == 0) {
             nDir = countGroups();
-            if (nDir < 9) sprintf(gid, "0%d", nDir + 1);
+            if (nDir < 10) sprintf(gid, "0%d", nDir + 1);
             else sprintf(gid, "%d", nDir + 1);
             if (!(createGroupDir(gid, args[2]))) {
                 fprintf(stderr, "error: Group %s directory create unsuccessful.\n", args[1]);
@@ -252,7 +252,7 @@ void glm() {
         memset(buffer, 0, MAX_INPUT_SIZE);
         if (nGroups > 0) {
             for (int i = 1; i <= nGroups; i++) {
-                if (i < 9) sprintf(gid, "0%d", i);
+                if (i < 10) sprintf(gid, "0%d", i);
                 else sprintf(gid, "%d", i);
                 sprintf(pathname, "GROUPS/%s/%s.txt", gid, args[0]);
                 if (access(pathname, F_OK) != 0) continue;
@@ -279,7 +279,7 @@ void glm() {
     
 	memset(userIP, 0, INET_ADDRSTRLEN);
 	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
-    if (mode == verbose) fprintf(stdout, "GUR, UID: %s, IP: %s, PORT: %u\n", args[0], userIP, addr.sin_port);
+    if (mode == verbose) fprintf(stdout, "GLM, UID: %s, IP: %s, PORT: %u\n", args[0], userIP, addr.sin_port);
 
     n = sendto(udpSocket, buffer, strlen(buffer), 0, (struct sockaddr*) &addr, addrlen);
 	if (n == -1) errorSendingMsg();

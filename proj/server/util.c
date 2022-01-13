@@ -73,7 +73,7 @@ int countGroups() {
     
     strcpy(pathname, "GROUPS/01");
     while (access(pathname, F_OK) == 0) {
-        nDir++;
+        nDir++;   
         if (nDir < 9) sprintf(pathname, "GROUPS/0%d", (nDir + 1));
         else sprintf(pathname, "GROUPS/%d", (nDir + 1));
     }

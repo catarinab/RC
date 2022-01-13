@@ -1,3 +1,13 @@
+/*
+ * Ficheiro: constants.h
+ * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
+ * Descricao: [Projeto de RC] Header file containing all constants and structures used in User Application.
+*/
+
+/*
+ * Libraries:
+*/
+
 #define MAX_INPUT_SIZE 3170
 #define MAX_MESSAGE_SIZE 245
 #define MAX_COMMAND_SIZE 128
@@ -5,6 +15,10 @@
 #define MAX_OP_SIZE 12
 #define MAX_INFO 26
 #define MAX_USER_SUB 600035 
+
+/*
+ * Structures:
+*/
 
 typedef struct user {
 	int logged;

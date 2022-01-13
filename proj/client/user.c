@@ -28,7 +28,7 @@
 /*
  * Function: dispArgsError
  * ----------------------------
- *   Prints errror message showing correct usage of the command line arguments.
+ *   Prints error message showing correct usage of the command line arguments.
  *
  */
 void dispArgsError() {
@@ -154,7 +154,7 @@ void readCommands() {
 }
 
 /*
- * Function: readCommands
+ * Function: exitClientSession
  * ----------------------------
  *   Prepares to close the client session.
  *

@@ -1,3 +1,13 @@
+/*
+ * Ficheiro: server.c
+ * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
+ * Descricao: [Projeto de RC] Development, in C language, of a Server Application.
+*/
+
+/*
+ * Libraries:
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -14,12 +24,28 @@
 #include "header/udpRequests.h"
 #include "header/tcpRequests.h"
 
+/*
+ * Functions:
+*/
+
+/*
+ * Function: dispArgsError
+ * ----------------------------
+ *   Prints error message showing correct usage of the command line arguments.
+ *
+ */
 void dispArgsError() {
     fprintf(stderr, "error: incorrect command line arguments\n");
     fprintf(stderr, "Usage: ./DS [-p DSport] [-v]\n");
     exit(1);
 }
 
+/*
+ * Function: parseArgs
+ * ----------------------------
+ *   Processes command line arguments.
+ *
+ */
 void parseArgs(int argc, char *argv[]) {
     mode = quiet;
 	if (argc == 1) strcpy(port, "58056");
@@ -43,6 +69,12 @@ void parseArgs(int argc, char *argv[]) {
 	else dispArgsError();
 }
 
+/*
+ * Function: deleteSockets
+ * ----------------------------
+ *   Deletes and frees any information related to the file descriptors.
+ *
+ */
 void deleteSockets() {
 	freeaddrinfo(udpRes);
 	freeaddrinfo(tcpRes);
@@ -50,6 +82,12 @@ void deleteSockets() {
 	close(tcpSocket);
 }
 
+/*
+ * Function: receiveCommands
+ * ----------------------------
+ *   Receives and processes any commands sent by the User Application, in a loop.
+ *
+ */
 void receiveCommands() {
     char args[3][MAX_INFO], op[MAX_COMMAND_SIZE];
     int counter, maxfd, numTokens, filled;
@@ -142,10 +180,20 @@ void receiveCommands() {
     }
 }
 
+/*
+ * Function: exitServerSession
+ * ----------------------------
+ *   Prepares to close the server session.
+ *
+ */
 void exitServerSession() {
 	fprintf(stdout, "Terminating server application.\n");
 	deleteSockets();
 }
+
+/*
+ * Main Function:
+*/
 
 int main(int argc, char *argv[]) {
 	parseArgs(argc, argv);
