@@ -52,7 +52,7 @@ void deleteSockets() {
 
 void receiveCommands() {
     char args[3][MAX_INFO], op[MAX_COMMAND_SIZE];
-    int counter, maxfd, numTokens;
+    int counter, maxfd, numTokens, filled;
     pid_t child;
     fd_set rfds;
 
@@ -71,19 +71,19 @@ void receiveCommands() {
             if ((child = fork()) == 0) {
                 close(tcpSocket);
                 memset(buffer, 0, MAX_INPUT_SIZE);
-                receiveTCPMessage(newTcpSocket, buffer, MAX_INPUT_SIZE - 1);
+                filled = receiveTCPMessage(newTcpSocket, buffer, MAX_INPUT_SIZE - 1);
                 numTokens = sscanf(buffer, "%s ", op);
                 //Switch
                 if (numTokens < 1) sendTCPMessage(newTcpSocket, "ERR\n", 4);
                 else {
                     if (strcmp(op, "ULS") == 0) {
-                        uls();
+                        uls(filled);
                     }
                     else if (strcmp(op, "PST") == 0) {
-                        pst();
+                        pst(filled);
                     }
                     else if (strcmp(op, "RTV") == 0) {
-                        rtv();
+                        rtv(filled);
                     }
                     else {
                         sendTCPMessage(newTcpSocket, "ERR\n", 4);
