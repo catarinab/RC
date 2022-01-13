@@ -274,7 +274,7 @@ void pst(int n) {
 			shift = strlen(args[0]) + strlen(args[1]) + 3;
 			outBounds = movePointer(buffer, bufferSize, &bufferPointer, &filled, &totalShifts, shift);
 			if (numTokens == -1 || numTokens == 0) strcat(strcat(reply, mid), "\n");
-			else if (numTokens =! 2) strcat(reply, "NOK\n");
+			else if (numTokens != 2) strcat(reply, "NOK\n");
 			else {
 				if (outBounds) {
 					memset(buffer, 0, MAX_INPUT_SIZE);
