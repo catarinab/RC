@@ -178,7 +178,7 @@ void gsr() {
     else {
         if (strcmp(args[1], "00") == 0) {
             nDir = countGroups();
-            if (nDir < 10) sprintf(gid, "0%d", nDir + 1);
+            if (nDir < 9) sprintf(gid, "0%d", nDir + 1);
             else sprintf(gid, "%d", nDir + 1);
             if (!(createGroupDir(gid, args[2]))) {
                 fprintf(stderr, "error: Group %s directory create unsuccessful.\n", args[1]);
