@@ -164,7 +164,7 @@ void unr() {
 }
 
 /*
- * Function: unr
+ * Function: login
  * ----------------------------
  *   Executes the login command.
  *

@@ -1,7 +1,7 @@
 /*
  * Ficheiro: util.c
  * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
- * Descricao: [Projeto de RC] Development, in C language, of useful function used in the execution of commands.
+ * Descricao: [Projeto de RC] Development, in C language, of useful function used in the execution of client commands.
 */
 
 /*

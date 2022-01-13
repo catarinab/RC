@@ -1,3 +1,13 @@
+/*
+ * Ficheiro: util.c
+ * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
+ * Descricao: [Projeto de RC] Development, in C language, of useful function used in the execution of server commands.
+*/
+
+/*
+ * Libraries:
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -11,6 +21,10 @@
 #include <ctype.h>
 #include "header/constants.h"
 
+/*
+ * Global Variables:
+*/
+
 int udpSocket, tcpSocket, newTcpSocket, errcode, errno;
 struct addrinfo udpHints, tcpHints, *udpRes, *tcpRes;
 struct sockaddr_in addr;
@@ -22,7 +36,21 @@ char buffer[MAX_INPUT_SIZE], port[6];
 
 enum {verbose, quiet} mode;
 
+/*
+ * Functions:
+*/
 
+/*
+ * Function: verifyDigit
+ * ----------------------------
+ *   Checks if the string only contains digits.
+ *
+ *   buff: buffer where the string to check is.
+ *   beg: index where the string begins.
+ *   end: index where the string ends.
+ *
+ *   returns: boolean related to errors.
+ */
 int verifyDigit(char buff[], int beg, int end) {
 	for (int i = beg; i < end; i ++){
 		if (isdigit(buff[i]) == 0) return 0;
@@ -30,6 +58,17 @@ int verifyDigit(char buff[], int beg, int end) {
 	return 1;
 }
 
+/*
+ * Function: verifyAlnum
+ * ----------------------------
+ *   Checks if the string only contains alphanumeric characters.
+ *
+ *   buff: buffer where the string to check is.
+ *   beg: index where the string begins.
+ *   end: index where the string ends.
+ *
+ *   returns: boolean related to errors.
+ */
 int verifyAlnum(char buff[], int beg, int end) {
 	for (int i = beg; i < end; i ++){
 		if (isalnum(buff[i]) == 0) return 0;
@@ -37,12 +76,32 @@ int verifyAlnum(char buff[], int beg, int end) {
 	return 1;
 }
 
+/*
+ * Function: verifyUserInfo
+ * ----------------------------
+ *   Checks if the information provided can be used to create a user.
+ *
+ *   uid: user identification.
+ *   pwd: user password.
+ *
+ *   returns: boolean related to errors.
+ */
 int verifyUserInfo(char uid[], char pwd[]) {
 	if (strlen(uid) != 5 || strlen(pwd) != 8 || !verifyDigit(uid, 0, strlen(uid)) || !verifyAlnum(pwd, 0, strlen(pwd))) 
         return 0;
 	return 1;
 }
 
+/*
+ * Function: createUserDir
+ * ----------------------------
+ *   Creates a directory for an user.
+ *
+ *   uid: user identification.
+ *   pwd: user password.
+ *
+ *   returns: boolean related to errors.
+ */
 int createUserDir(char *uid, char *pass) {
     int size;
     FILE * ptr;
@@ -59,6 +118,15 @@ int createUserDir(char *uid, char *pass) {
     return 1;
 }
 
+/*
+ * Function: checkUserExists
+ * ----------------------------
+ *   Checks if an user exists.
+ *
+ *   uid: user identification.
+ *
+ *   returns: boolean related to errors.
+ */
 int checkUserExists(char *uid) {
     char pathname[25];
 
@@ -67,6 +135,13 @@ int checkUserExists(char *uid) {
     else return 0;
 }
 
+/*
+ * Function: countGroups
+ * ----------------------------
+ *   Counts the existent groups.
+ *
+ *   returns: number of groups.
+ */
 int countGroups() {
     int nDir = 0;
     char pathname[20];
@@ -80,6 +155,16 @@ int countGroups() {
     return nDir;
 }
 
+/*
+ * Function: countMessages
+ * ----------------------------
+ *   Counts the existent messages in a group starting from a specified message.
+ *
+ *   gid: group identification.
+ *   mid: message identification that the function counts from.
+ *
+ *   returns: number of messages.
+ */
 int countMessages(char *gid, int mid) {
     int nMsg = 0;
     char pathname[20];
@@ -99,6 +184,15 @@ int countMessages(char *gid, int mid) {
     return nMsg;
 }
 
+/*
+ * Function: delUserDir
+ * ----------------------------
+ *   Deletes the directory of an user.
+ *
+ *   uid: user identification.
+ *
+ *   returns: boolean related to errors.
+ */
 int delUserDir(char *uid) {
     int nGroups;
     char pathname[30], gid[3];
@@ -127,6 +221,16 @@ int delUserDir(char *uid) {
     return 1;
 }
 
+/*
+ * Function: checkPass
+ * ----------------------------
+ *   Checks if a password matches an user's password.
+ *
+ *   uid: user identification.
+ *   pass: password.
+ *
+ *   returns: boolean related to errors.
+ */
 int checkPass(char *uid, char *pass) {
     FILE * ptr;
     char pathname[30], filePass[9];
@@ -141,6 +245,15 @@ int checkPass(char *uid, char *pass) {
     return 1;
 }
 
+/*
+ * Function: createLogFile
+ * ----------------------------
+ *   Creates a file indicating that a user is logged in.
+ *
+ *   uid: user identification.
+ *
+ *   returns: boolean related to errors.
+ */
 int createLogFile(char *uid) {
     FILE * ptr;
     char pathname[30];
@@ -152,6 +265,15 @@ int createLogFile(char *uid) {
     return 1;
 }
 
+/*
+ * Function: checkLog
+ * ----------------------------
+ *   Checks if a user is logged in.
+ *
+ *   uid: user identification.
+ *
+ *   returns: boolean related to errors.
+ */
 int checkLog(char *uid) {
     char pathname[30];
 
@@ -160,6 +282,15 @@ int checkLog(char *uid) {
     else return 0;
 }
 
+/*
+ * Function: deleteLogFile
+ * ----------------------------
+ *   Deletes the file indicating that the user is logged in.
+ *
+ *   uid: user identification.
+ *
+ *   returns: boolean related to errors.
+ */
 int deleteLogFile(char *uid) {
     char pathname[30];
 
@@ -169,14 +300,15 @@ int deleteLogFile(char *uid) {
     return 1;
 }
 
-int checkUser(char *uid) {
-    char pathname[15];
-
-    sprintf(pathname, "USERS/%s", uid);
-    if (access(pathname, F_OK) == 0) return 1;
-    else return 0;
-}
-
+/*
+ * Function: checkGroup
+ * ----------------------------
+ *   Checks if a group exists.
+ *
+ *   gid: group identification.
+ *
+ *   returns: boolean related to errors.
+ */
 int checkGroup(char *gid) {
     char pathname[10];
 
@@ -191,6 +323,16 @@ int checkGroup(char *gid) {
     }
 }
 
+/*
+ * Function: checkGroupInfo
+ * ----------------------------
+ *   Checks if a name matches a group's name.
+ *
+ *   gid: group identification.
+ *   gname: name.
+ *
+ *   returns: boolean related to errors.
+ */
 int checkGroupInfo(char *gid, char *gname) {
     FILE * ptr;
     int nDir = 0;
@@ -208,6 +350,16 @@ int checkGroupInfo(char *gid, char *gname) {
     return 1;
 }
 
+/*
+ * Function: createGroupDir
+ * ----------------------------
+ *   Creates a directory for a group.
+ *
+ *   gid: group identification.
+ *   gname: group name.
+ *
+ *   returns: boolean related to errors.
+ */
 int createGroupDir(char *gid, char *gname) {
     int size;
     FILE * ptr;
@@ -226,6 +378,16 @@ int createGroupDir(char *gid, char *gname) {
     return 1;
 }
 
+/*
+ * Function: createSubFile
+ * ----------------------------
+ *   Creates a file indicating that a user is subscribed to a group.
+ *
+ *   uid: user identification.
+ *   gid: group identification.
+ *
+ *   returns: boolean related to errors.
+ */
 int createSubFile(char *uid, char *gid) {
     FILE * ptr;
     char pathname[20];
@@ -237,6 +399,16 @@ int createSubFile(char *uid, char *gid) {
     return 1;
 }
 
+/*
+ * Function: deleteSubFile
+ * ----------------------------
+ *   Deletes the file indicating that an user is subscribed to a group.
+ *
+ *   uid: user identification.
+ *   gid: group identification.
+ *
+ *   returns: boolean related to errors.
+ */
 int deleteSubFile(char *uid, char *gid) {
     char pathname[20];
 
@@ -246,7 +418,17 @@ int deleteSubFile(char *uid, char *gid) {
     return 1;
 }
 
-int verifyUserFile(char * userFile, char * uid) {
+/*
+ * Function: verifyUserFile
+ * ----------------------------
+ *   Checks if a given file is a user subscription file, and if so returns the UID by reference.
+ *
+ *   userFile: given file.
+ *   uid: pointer to return the user identification to.
+ *
+ *   returns: boolean related to errors.
+ */
+int verifyUserFile(char *userFile, char *uid) {
     char ext[4];
     char *token;
 
@@ -259,6 +441,17 @@ int verifyUserFile(char * userFile, char * uid) {
     else return 0;
 }
 
+/*
+ * Function: checkMessage
+ * ----------------------------
+ *   Checks if a message exists in a group or, if the input is 0000, if there's 
+ *   space for another one and, if so, returns a MID by reference.
+ *
+ *   gid: group identification.
+ *   mid: message identification.
+ *
+ *   returns: boolean related to errors.
+ */
 int checkMessage(char *gid, char *mid) {
     int nMsg;
     char pathname[20];
@@ -283,6 +476,18 @@ int checkMessage(char *gid, char *mid) {
     }
 }
 
+/*
+ * Function: createMsgDir
+ * ----------------------------
+ *   Creates a directory for a message.
+ *
+ *   uid: user that posted the message.
+ *   gid: group to where the message was posted.
+ *   mid: message identification.
+ *   text: message.
+ *
+ *   returns: boolean related to errors.
+ */
 int createMsgDir(char *uid, char *gid, char *mid, char *text) {
     int size;
     FILE * ptr;
@@ -304,6 +509,16 @@ int createMsgDir(char *uid, char *gid, char *mid, char *text) {
     return 1;
 }
 
+/*
+ * Function: checkSub
+ * ----------------------------
+ *   Checks if a user is subscribed to a group.
+ *
+ *   uid: user identification.
+ *   gid: group identification.
+ *
+ *   returns: boolean related to errors.
+ */
 int checkSub(char * uid, char * gid) {
     char pathname[20];
 

@@ -1,4 +1,18 @@
+/*
+ * Ficheiro: constants.h
+ * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
+ * Descricao: [Projeto de RC] Header file containing all constants and structures used in the Server Application.
+*/
+
+/*
+ * Macros:
+*/
+
 #define max(A, B) ((A) >= (B) ? (A) : (B))
+
+/*
+ * Constants:
+*/
 
 #define MAX_INPUT_SIZE 3170
 #define MAX_MESSAGE_SIZE 240

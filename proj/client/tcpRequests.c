@@ -1,5 +1,5 @@
 /*
- * Ficheiro: constants.h
+ * Ficheiro: tcpRequests.c
  * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
  * Descricao: [Projeto de RC] Development, in C language, of the user commands that receive information from the server by TCP.
 */
@@ -52,7 +52,7 @@ void createTCPSocket() {
  *   Sends information to the server in the TCP file descriptor. 
  *   
  *   socket: TCP file descriptor
- *   ptr: pointer to the buffer where the information will be stored
+ *   ptr: pointer to the buffer where the information is.
  *   nleft: size of the buffer or how much information we want to send.
  *
  */
@@ -73,7 +73,7 @@ void sendTCPMessage(int socket, char *ptr, int nleft) {
  *   Receives information from the server in the TCP file descriptor. 
  *
  *   socket: TCP file descriptor
- *   ptr: pointer to the buffer where the information will be stored
+ *   ptr: pointer to the buffer where the information will be stored.
  *   nleft: size of the buffer or how much information we want to receive.
  *
  */
@@ -88,7 +88,7 @@ void receiveTCPMessage(int socket, char *ptr, int nleft) {
 }
 
 /*
- * Function: reg
+ * Function: ul
  * ----------------------------
  *   Executes the ulist command.
  *

@@ -1,3 +1,13 @@
+/*
+ * Ficheiro: util.h
+ * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
+ * Descricao: [Projeto de RC] Header file of util.c.
+*/
+
+/*
+ * Libraries:
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -10,6 +20,9 @@
 #include <ctype.h>
 #include "constants.h"
 
+/*
+ * Global Variables:
+*/
 
 extern int udpSocket, tcpSocket, newTcpSocket, errcode, errno;
 extern struct addrinfo udpHints, tcpHints, *udpRes, *tcpRes;
@@ -22,6 +35,9 @@ extern char buffer[MAX_INPUT_SIZE], port[6];
 
 extern enum {verbose, quiet} mode;
 
+/*
+ * Functions:
+*/
 
 int verifyUserInfo(char uid[], char pwd[]);
 int createUserDir(char *uid, char *pass);

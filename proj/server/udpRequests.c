@@ -1,3 +1,13 @@
+/*
+ * Ficheiro: udpRequests.c
+ * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
+ * Descricao: [Projeto de RC] Development, in C language, of the server commands that receive information from the client by UDP.
+*/
+
+/*
+ * Libraries:
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -12,16 +22,38 @@
 #include <dirent.h>
 #include "header/util.h"
 
+/*
+ * Functions:
+*/
+
+/*
+ * Function: errorUdpSocket
+ * ----------------------------
+ *   Prints error message and exits if there was a problem with the UDP file descriptor.
+ *
+ */
 void errorUdpSocket() {
 	fprintf(stderr, "Error creating UDP Socket.\n");
 	exit(1);
 }
 
+/*
+ * Function: errorSendingMsg
+ * ----------------------------
+ *   Prints error message and exits if there was a problem sending a message to the UDP file descriptor.
+ *
+ */
 void errorSendingMsg() {
     fprintf(stderr, "Error Sending UDP Message.\n");
 	exit(1);
 }
 
+/*
+ * Function: createUdpSocket
+ * ----------------------------
+ *   Creates the UDP file descriptor.
+ *
+ */
 void createUdpSocket() {
 	udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
 	if (udpSocket == -1) errorUdpSocket();
@@ -38,6 +70,12 @@ void createUdpSocket() {
     if (n == 1) errorUdpSocket();
 }
 
+/*
+ * Function: reg
+ * ----------------------------
+ *   Executes the register command.
+ *
+ */
 void reg() {
     int numTokens;
     char args[2][MAX_INFO], reply[REPLY_SIZE] = "RRG ";
@@ -62,6 +100,12 @@ void reg() {
 	if (n == -1) errorSendingMsg();
 }
 
+/*
+ * Function: unr
+ * ----------------------------
+ *   Executes the unregister command.
+ *
+ */
 void unr() {
     int numTokens;
     char args[2][MAX_INFO], reply[REPLY_SIZE] = "RUN ";
@@ -87,6 +131,12 @@ void unr() {
 	if (n == -1) errorSendingMsg();
 }
 
+/*
+ * Function: login
+ * ----------------------------
+ *   Executes the login command.
+ *
+ */
 void login() {
     int numTokens;
     char args[2][MAX_INFO], reply[REPLY_SIZE] = "RLO ";
@@ -112,6 +162,12 @@ void login() {
 	if (n == -1) errorSendingMsg();
 }
 
+/*
+ * Function: logout
+ * ----------------------------
+ *   Executes the logout command.
+ *
+ */
 void logout() {
     int numTokens;
     char args[2][MAX_INFO], reply[REPLY_SIZE] = "ROU ";
@@ -138,6 +194,12 @@ void logout() {
 	if (n == -1) errorSendingMsg();
 }
 
+/*
+ * Function: gls
+ * ----------------------------
+ *   Executes the group list command.
+ *
+ */
 void gls() {
     FILE * ptr;
     int nDir, nMsg = 0;
@@ -174,13 +236,19 @@ void gls() {
 	if (n == -1) errorSendingMsg();
 }
 
+/*
+ * Function: gsr
+ * ----------------------------
+ *   Executes the subscribe command.
+ *
+ */
 void gsr() {
     int numTokens, nDir;
     char args[3][MAX_INFO], gid[3], reply[REPLY_SIZE] = "RGS ";
 
     numTokens = sscanf(buffer, "%s %s %s", args[0], args[1], args[2]);
     if (numTokens != 3) strcat(reply, "NOK\n");
-    else if (!(checkUser(args[0]))) strcat(reply, "E_USR\n");
+    else if (!(checkUserExists(args[0]))) strcat(reply, "E_USR\n");
     else if (!(checkLog(args[0]))) strcat(reply, "NOK\n");
     else if (checkGroup(args[1]) == 0) strcat(reply, "E_GRP\n");
     else if (!(checkGroupInfo(args[1], args[2]))) strcat(reply, "E_GNAME\n");
@@ -211,6 +279,12 @@ void gsr() {
 	if (n == -1) errorSendingMsg();
 }
 
+/*
+ * Function: gur
+ * ----------------------------
+ *   Executes the unsubscribe command.
+ *
+ */
 void gur() {
     int numTokens;
     char args[2][MAX_INFO], reply[REPLY_SIZE] = "RGU ";
@@ -218,7 +292,7 @@ void gur() {
     numTokens = sscanf(buffer, "%s %s", args[0], args[1]);
     printf("%s %s\n", args[0], args[1]);
     if (numTokens != 2) strcat(reply, "NOK\n");
-    else if (!(checkUser(args[0]))) strcat(reply, "E_USR\n");
+    else if (!(checkUserExists(args[0]))) strcat(reply, "E_USR\n");
     else if (!(checkLog(args[0]))) strcat(reply, "NOK\n");
     else if (strcmp(args[0], "00") == 0) strcat(reply, "NOK\n");
     else if (checkGroup(args[1]) == 0) strcat(reply, "E_GRP\n");
@@ -238,6 +312,12 @@ void gur() {
 	if (n == -1) errorSendingMsg();
 }
 
+/*
+ * Function: glm
+ * ----------------------------
+ *   Executes the my group list command.
+ *
+ */
 void glm() {
     FILE * ptr;
     int numTokens, nGroups, nSubTo = 0, nMsg;
@@ -245,7 +325,7 @@ void glm() {
 
     numTokens = sscanf(buffer, "%s", args[0]);
     if (numTokens != 1) strcat(reply, "NOK\n");
-    else if (!(checkUser(args[0]))) strcat(reply, "E_USR\n");
+    else if (!(checkUserExists(args[0]))) strcat(reply, "E_USR\n");
     else if (!(checkLog(args[0]))) strcat(reply, "E_USR\n");
     else {
         nGroups = countGroups();

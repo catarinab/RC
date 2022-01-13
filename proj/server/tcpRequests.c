@@ -1,3 +1,13 @@
+/*
+ * Ficheiro: tcpRequests.c
+ * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
+ * Descricao: [Projeto de RC] Development, in C language, of the server commands that receive information from the user by TCP.
+*/
+
+/*
+ * Libraries:
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,11 +20,27 @@
 #include <dirent.h>
 #include "header/util.h"
 
+/*
+ * Functions:
+*/
+
+/*
+ * Function: errorTcpSocket
+ * ----------------------------
+ *   Prints error message and exits if there was a problem with the TCP file descriptor.
+ *
+ */
 void errorTcpSocket() {
 	fprintf(stderr, "Error creating TCP Socket.\n");
 	exit(1);
 }
 
+/*
+ * Function: createTCPSocket
+ * ----------------------------
+ *   Creates the TCP file descriptor.
+ *
+ */
 void createTcpSocket() {
     tcpSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (tcpSocket == -1) errorTcpSocket();
@@ -33,6 +59,16 @@ void createTcpSocket() {
     if (listen(tcpSocket, 5) == -1) errorTcpSocket();
 }
 
+/*
+ * Function: sendTCPMessage
+ * ----------------------------
+ *   Sends information to the user in the TCP file descriptor. 
+ *   
+ *   socket: TCP file descriptor
+ *   ptr: pointer to the buffer where the information is.
+ *   nleft: size of the buffer or how much information we want to send.
+ *
+ */
 void sendTCPMessage(int socket, char *ptr, int nleft) {
 	while (nleft > 0) {
 		n = write(socket, ptr, nleft);
@@ -46,6 +82,16 @@ void sendTCPMessage(int socket, char *ptr, int nleft) {
 	}
 }
 
+/*
+ * Function: receiveTCPMessage
+ * ----------------------------
+ *   Receives information from the user in the TCP file descriptor. 
+ *
+ *   socket: TCP file descriptor
+ *   ptr: pointer to the buffer where the information will be stored.
+ *   nleft: size of the buffer or how much information we want to receive.
+ *
+ */
 int receiveTCPMessage(int socket, char *ptr, int nleft) {
 	int nTotal = 0;
 	while (nleft > 0) {
@@ -64,6 +110,21 @@ int receiveTCPMessage(int socket, char *ptr, int nleft) {
 	}
 	return nTotal;
 }
+
+/*
+ * Function: movePointer
+ * ----------------------------
+ *   Moves a given pointer.
+ *
+ *   table: array that is being pointed to.
+ *   tableSize: size of the array.
+ *   pointer: the pointer to move.
+ *   filled: occupied space in array.
+ *   totalShifts: how many shifts were made to the pointer already.
+ *   shift: the shift we want to move.
+ *
+ *   returns: if the pointer is now out of bounds.
+ */
 int movePointer(char *table, int tableSize, char **pointer, int *filled, int *totalShifts, int shift) {
 	int outBounds = 0;
 	if ((*totalShifts += shift) < *filled) {
@@ -76,6 +137,14 @@ int movePointer(char *table, int tableSize, char **pointer, int *filled, int *to
 	return outBounds;
 }
 
+/*
+ * Function: uls
+ * ----------------------------
+ *   Executes the ulist command.
+ *
+ *   n: occupied space in buffer.
+ *
+ */
 void uls(int n) {
 	DIR *d;
 	FILE *ptr;
@@ -137,6 +206,14 @@ void uls(int n) {
     sendTCPMessage(newTcpSocket, buffer, strlen(buffer));
 }
 
+/*
+ * Function: pst
+ * ----------------------------
+ *   Executes the post command.
+ *
+ *   n: occupied space in buffer.
+ *
+ */
 void pst(int n) {
 	FILE *ptr;
 	int numTokens, filled = n, outBounds, bufferSize = MAX_INPUT_SIZE - 1, msgSize, fileSize, shift, totalShifts = 0, errFlag = 0;
@@ -153,7 +230,7 @@ void pst(int n) {
 	shift = strlen(args[0]) + strlen(args[1]) + 2;
 	outBounds = movePointer(buffer, bufferSize, &bufferPointer, &filled, &totalShifts, shift);
 	if (numTokens != 2) strcat(reply, "NOK\n");
-	else if (!(checkUser(args[0]))) strcat(reply, "NOK\n");
+	else if (!(checkUserExists(args[0]))) strcat(reply, "NOK\n");
 	else if (!(checkLog(args[0]))) strcat(reply, "NOK\n");
     else if (!(checkGroup(args[1]))) strcat(reply, "NOK\n");
 	else if (!(checkSub(args[0], args[1]))) strcat(reply, "NOK\n");
@@ -243,6 +320,15 @@ void pst(int n) {
     sendTCPMessage(newTcpSocket, reply, strlen(reply));
 }
 
+
+/*
+ * Function: rtv
+ * ----------------------------
+ *   Executes the retrieve command.
+ *
+ *   n: occupied space in buffer.
+ *
+ */
 void rtv(int n) {
 	DIR *d;
     struct dirent *dir;
@@ -266,7 +352,7 @@ void rtv(int n) {
 	shift = 4;
 	movePointer(buffer, bufferSize, &bufferPointer, &bufferSize, &totalShifts, shift);
 	if (numTokens != 3) strcpy(bufferPointer, "NOK\n");
-	else if (!(checkUser(args[0]))) strcpy(bufferPointer, "NOK\n");
+	else if (!(checkUserExists(args[0]))) strcpy(bufferPointer, "NOK\n");
 	else if (!(checkLog(args[0]))) strcpy(bufferPointer, "NOK\n");
     else if (!(checkGroup(args[1]))) strcpy(bufferPointer, "NOK\n");
 	else if (!(checkSub(args[0], args[1]))) strcpy(bufferPointer, "NOK\n");

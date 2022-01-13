@@ -1,11 +1,11 @@
 /*
  * Ficheiro: constants.h
  * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
- * Descricao: [Projeto de RC] Header file containing all constants and structures used in User Application.
+ * Descricao: [Projeto de RC] Header file containing all constants and structures used in the User Application.
 */
 
 /*
- * Libraries:
+ * Constants:
 */
 
 #define MAX_INPUT_SIZE 3170
