@@ -10,11 +10,13 @@
 #include <ctype.h>
 #include "constants.h"
 
+
 extern int udpSocket, tcpSocket, newTcpSocket, errcode, errno;
 extern struct addrinfo udpHints, tcpHints, *udpRes, *tcpRes;
 extern struct sockaddr_in addr;
 extern ssize_t n;
 extern socklen_t addrlen;
+extern char userIP[INET_ADDRSTRLEN];
 
 extern char buffer[MAX_INPUT_SIZE], port[6];
 

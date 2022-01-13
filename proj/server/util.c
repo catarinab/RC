@@ -16,6 +16,7 @@ struct addrinfo udpHints, tcpHints, *udpRes, *tcpRes;
 struct sockaddr_in addr;
 ssize_t n;
 socklen_t addrlen;
+char userIP[INET_ADDRSTRLEN];
 
 char buffer[MAX_INPUT_SIZE], port[6];
 

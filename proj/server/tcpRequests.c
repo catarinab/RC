@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -128,8 +129,10 @@ void uls(int n) {
 			exit(1);
 		}
     }
-
-    if (mode == verbose) fprintf(stdout, "ULS, GID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
+	
+	memset(userIP, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
+    if (mode == verbose) fprintf(stdout, "ULS, GID: %s, IP: %s, PORT: %u\n", args[0], userIP, addr.sin_port);
 
     sendTCPMessage(newTcpSocket, buffer, strlen(buffer));
 }
@@ -232,8 +235,10 @@ void pst(int n) {
 			}
 		}
 	}
-
-	if (mode == verbose) fprintf(stdout, "PST, UID: %s, GID: %s, IP: %d, PORT: %d\n", uid, gid, addr.sin_addr.s_addr, addr.sin_port);
+	
+	memset(userIP, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
+	if (mode == verbose) fprintf(stdout, "PST, UID: %s, GID: %s, IP: %s, PORT: %u\n", uid, gid, userIP, addr.sin_port);
 
     sendTCPMessage(newTcpSocket, reply, strlen(reply));
 }
@@ -367,7 +372,9 @@ void rtv(int n) {
 		sendTCPMessage(newTcpSocket, "\n", 1);
 	}
 
-	if (mode == verbose) fprintf(stdout, "RTV, UID: %s, GID: %s, IP: %d, PORT: %d\n", args[0], args[1], addr.sin_addr.s_addr, addr.sin_port);
+	memset(userIP, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
+	if (mode == verbose) fprintf(stdout, "RTV, UID: %s, GID: %s, IP: %s, PORT: %u\n", args[0], args[1], userIP, addr.sin_port);
 	
 	if (!passedVerifications) sendTCPMessage(newTcpSocket, buffer, strlen(buffer));
 }

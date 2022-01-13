@@ -54,7 +54,9 @@ void reg() {
         strcat(reply, "OK\n");
     }
 
-    if (mode == verbose) fprintf(stdout, "REG, UID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
+	memset(userIP, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
+    if (mode == verbose) fprintf(stdout, "REG, UID: %s, IP: %s, PORT: %u\n", args[0], userIP, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
 	if (n == -1) errorSendingMsg();
@@ -77,7 +79,9 @@ void unr() {
         strcat(reply, "OK\n");
     }
 
-    if (mode == verbose) fprintf(stdout, "UNR, UID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
+    memset(userIP, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
+    if (mode == verbose) fprintf(stdout, "UNR, UID: %s, IP: %s, PORT: %u\n", args[0], userIP, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
 	if (n == -1) errorSendingMsg();
@@ -99,8 +103,10 @@ void login() {
         }
         strcat(reply, "OK\n");
     }
-
-    if (mode == verbose) fprintf(stdout, "LOG, UID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
+    
+    memset(userIP, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
+    if (mode == verbose) fprintf(stdout, "LOG, UID: %s, IP: %s, PORT: %u\n", args[0], userIP, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
 	if (n == -1) errorSendingMsg();
@@ -124,7 +130,9 @@ void logout() {
         strcat(reply, "OK\n");
     }
 
-    if (mode == verbose) fprintf(stdout, "OUT, UID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
+    memset(userIP, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
+    if (mode == verbose) fprintf(stdout, "OUT, UID: %s, IP: %s, PORT: %u\n", args[0], userIP, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
 	if (n == -1) errorSendingMsg();
@@ -158,7 +166,9 @@ void gls() {
     }
     strcat(buffer, "\n");
 
-    if (mode == verbose) fprintf(stdout, "GLS, IP: %d, PORT: %d\n", addr.sin_addr.s_addr, addr.sin_port);
+    memset(userIP, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
+    if (mode == verbose) fprintf(stdout, "GLS, IP: %s, PORT: %u\n", userIP, addr.sin_port);
 
     n = sendto(udpSocket, buffer, strlen(buffer), 0, (struct sockaddr*) &addr, addrlen);
 	if (n == -1) errorSendingMsg();
@@ -193,7 +203,9 @@ void gsr() {
         strcat(reply, "OK\n");
     }
 
-    if (mode == verbose) fprintf(stdout, "GSR, UID: %s, GID: %s, IP: %d, PORT: %d\n", args[0], args[1], addr.sin_addr.s_addr, addr.sin_port);
+    memset(userIP, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
+    if (mode == verbose) fprintf(stdout, "GSR, UID: %s, GID: %s, IP: %s, PORT: %u\n", args[0], args[1], userIP, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
 	if (n == -1) errorSendingMsg();
@@ -218,7 +230,9 @@ void gur() {
         strcat(reply, "OK\n");
     }
 
-    if (mode == verbose) fprintf(stdout, "GUR, UID: %s, GID: %s, IP: %d, PORT: %d\n", args[0], args[1], addr.sin_addr.s_addr, addr.sin_port);
+	memset(userIP, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
+    if (mode == verbose) fprintf(stdout, "GUR, UID: %s, GID: %s, IP: %s, PORT: %u\n", args[0], args[1], userIP, addr.sin_port);
 
     n = sendto(udpSocket, reply, strlen(reply), 0, (struct sockaddr*) &addr, addrlen);
 	if (n == -1) errorSendingMsg();
@@ -262,8 +276,10 @@ void glm() {
         sprintf(buffer, "RGM %d%s\n", nSubTo, aux);
         free(aux);
     }
-
-    if (mode == verbose) fprintf(stdout, "GUR, UID: %s, IP: %d, PORT: %d\n", args[0], addr.sin_addr.s_addr, addr.sin_port);
+    
+	memset(userIP, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &addr.sin_addr, userIP, INET_ADDRSTRLEN);
+    if (mode == verbose) fprintf(stdout, "GUR, UID: %s, IP: %s, PORT: %u\n", args[0], userIP, addr.sin_port);
 
     n = sendto(udpSocket, buffer, strlen(buffer), 0, (struct sockaddr*) &addr, addrlen);
 	if (n == -1) errorSendingMsg();
