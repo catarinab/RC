@@ -1,3 +1,13 @@
+/*
+ * Ficheiro: util.h
+ * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
+ * Descricao: [Projeto de RC] Header file of util.c.
+*/
+
+/*
+ * Libraries:
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -10,6 +20,10 @@
 #include <ctype.h>
 #include "constants.h"
 
+/*
+ * Global Variables:
+*/
+
 extern int udpSocket, tcpSocket, errcode, errno;
 extern struct addrinfo udpHints, tcpHints, *udpRes, *tcpRes;
 extern ssize_t n;
@@ -20,12 +34,16 @@ extern char buffer[MAX_INPUT_SIZE], port[6], ip[MAX_IP_SIZE]; //nosso pc: localh
 extern user loggedUser; 
 extern group selectedGroup;
 
+/*
+ * Functions:
+*/
+
 int verifyDigit(char buff[], int beg, int end, char err[]);
 int verifyAlnum(char buff[], int beg, int end, char err[]);
+int verifyName(char buff[], int beg, int end, char err[]);
 int verifyAlpha(char buff[], int beg, int end, char err[]);
 int verifyUserInfo(char uid[], char pwd[]);
+int verifyGroupInfo(char gid[], char gname[]);
 int verifySession();
 void resetUser();
 void resetGroup();
-int verifyGroupInfo(char gid[], int flag, char gname[]);
-int verifyName(char buff[], int beg, int end, char err[]);

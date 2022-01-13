@@ -1,3 +1,13 @@
+/*
+ * Ficheiro: util.c
+ * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
+ * Descricao: [Projeto de RC] Development, in C language, of useful function used in the execution of commands.
+*/
+
+/*
+ * Libraries:
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -10,6 +20,10 @@
 #include <ctype.h>
 #include "header/constants.h"
 
+/*
+ * Global Variables:
+*/
+
 int udpSocket, tcpSocket, errcode, errno;
 struct addrinfo udpHints, tcpHints, *udpRes, *tcpRes;
 ssize_t n;
@@ -20,6 +34,22 @@ char buffer[MAX_INPUT_SIZE], port[6], ip[MAX_IP_SIZE]; //nosso pc: localhost;
 user loggedUser; 
 group selectedGroup;
 
+/*
+ * Functions:
+*/
+
+/*
+ * Function: verifyDigit
+ * ----------------------------
+ *   Checks if the string only contains digits.
+ *
+ *   buff: buffer where the string to check is.
+ *   beg: index where the string begins.
+ *   end: index where the string ends.
+ *   err: error message to print.
+ *
+ *   returns: boolean related to errors.
+ */
 int verifyDigit(char buff[], int beg, int end, char err[]) {
 	for (int i = beg; i < end; i ++){
 		if (isdigit(buff[i]) == 0) {
@@ -30,6 +60,18 @@ int verifyDigit(char buff[], int beg, int end, char err[]) {
 	return 0;
 }
 
+/*
+ * Function: verifyAlnum
+ * ----------------------------
+ *   Checks if the string only contains alphanumeric characters.
+ *
+ *   buff: buffer where the string to check is.
+ *   beg: index where the string begins.
+ *   end: index where the string ends.
+ *   err: error message to print.
+ *
+ *   returns: boolean related to errors.
+ */
 int verifyAlnum(char buff[], int beg, int end, char err[]) {
 	for (int i = beg; i < end; i ++){
 		if (isalnum(buff[i]) == 0) {
@@ -40,6 +82,18 @@ int verifyAlnum(char buff[], int beg, int end, char err[]) {
 	return 0;
 }
 
+/*
+ * Function: verifyName
+ * ----------------------------
+ *   Checks if the string can be a file/group name.
+ *
+ *   buff: buffer where the string to check is.
+ *   beg: index where the string begins.
+ *   end: index where the string ends.
+ *   err: error message to print.
+ *
+ *   returns: boolean related to errors.
+ */
 int verifyName(char buff[], int beg, int end, char err[]) {
 	for (int i = beg; i < end; i ++){
 		if (isalnum(buff[i]) == 0 && buff[i] != '-' && buff[i] != '_') {
@@ -50,6 +104,18 @@ int verifyName(char buff[], int beg, int end, char err[]) {
 	return 0;
 }
 
+/*
+ * Function: verifyName
+ * ----------------------------
+ *   Checks if the string only contains alphabetical characters.
+ *
+ *   buff: buffer where the string to check is.
+ *   beg: index where the string begins.
+ *   end: index where the string ends.
+ *   err: error message to print.
+ *
+ *   returns: boolean related to errors.
+ */
 int verifyAlpha(char buff[], int beg, int end, char err[]) {
 	for (int i = beg; i < end; i ++){
 		if (isalpha(buff[i]) == 0) {
@@ -60,6 +126,16 @@ int verifyAlpha(char buff[], int beg, int end, char err[]) {
 	return 0;
 }
 
+/*
+ * Function: verifyUserInfo
+ * ----------------------------
+ *   Checks if the information provided can be used to create a user.
+ *
+ *   uid: user identification.
+ *   pwd: user password.
+ *
+ *   returns: boolean related to errors.
+ */
 int verifyUserInfo(char uid[], char pwd[]) {
 	int errFlag = 0;
 
@@ -78,7 +154,17 @@ int verifyUserInfo(char uid[], char pwd[]) {
 	return errFlag;
 }
 
-int verifyGroupInfo(char gid[], int flag, char gname[]) {
+/*
+ * Function: verifyGroupInfo
+ * ----------------------------
+ *   Checks if the information provided can be used to create a group.
+ *
+ *   gid: group number.
+ *   gname: group name.
+ *
+ *   returns: boolean related to errors.
+ */
+int verifyGroupInfo(char gid[], char gname[]) {
 	int errFlag = 0;
 
 	if (strlen(gid) > 2){
@@ -99,6 +185,13 @@ int verifyGroupInfo(char gid[], int flag, char gname[]) {
 	return errFlag;
 }
 
+/*
+ * Function: verifySession
+ * ----------------------------
+ *   Checks if there is a logged user and a selected group.
+ *
+ *   returns: boolean related to errors.
+ */
 int verifySession() {
 	if (!loggedUser.logged) {
 		fprintf(stdout, "warning: No user logged.\n");
@@ -111,12 +204,24 @@ int verifySession() {
 	return 1;
 }
 
+/*
+ * Function: resetUser
+ * ----------------------------
+ *   Clears the logged user's information.
+ *
+ */
 void resetUser() {
 	loggedUser.logged = 0;
 	strcpy(loggedUser.uid, "");
 	strcpy(loggedUser.pwd, "");
 }
 
+/*
+ * Function: resetUser
+ * ----------------------------
+ *   Clears the selected group's information.
+ *
+ */
 void resetGroup() {
 	selectedGroup.selected = 0;
 	strcpy(selectedGroup.gid, "");

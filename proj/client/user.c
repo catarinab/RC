@@ -1,3 +1,13 @@
+/*
+ * Ficheiro: user.c
+ * Autor: Luis Freire D'Andrade (N94179), Catarina da Costa Bento (N93230), Bernardo Rosa (N88077)
+ * Descricao: [Projeto de RC] Development, in C language, of a User Application.
+*/
+
+/*
+ * Libraries:
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -11,12 +21,28 @@
 #include "header/udpRequests.h"
 #include "header/tcpRequests.h"
 
+/*
+ * Functions:
+*/
+
+/*
+ * Function: dispArgsError
+ * ----------------------------
+ *   Prints errror message showing correct usage of the command line arguments.
+ *
+ */
 void dispArgsError() {
     fprintf(stderr, "error: incorrect command line arguments\n");
 	fprintf(stderr, "Usage: ./user [-n DSIP] [-p DSport]\n");
     exit(1);
 }
 
+/*
+ * Function: parseArgs
+ * ----------------------------
+ *   Processes command line arguments.
+ *
+ */
 void parseArgs(int argc, char *argv[]) {
 	if (argc == 1) {
 		if (gethostname(ip, 128) == -1) fprintf(stderr, "error: %s\n", strerror(errno));
@@ -47,7 +73,12 @@ void parseArgs(int argc, char *argv[]) {
 	else dispArgsError();
 }
 
-
+/*
+ * Function: deleteSockets
+ * ----------------------------
+ *   Deletes and frees any information related to the file descriptors.
+ *
+ */
 void deleteSockets() {
 	freeaddrinfo(udpRes);
 	freeaddrinfo(tcpRes);
@@ -55,6 +86,12 @@ void deleteSockets() {
 	close(tcpSocket);
 }
 
+/*
+ * Function: readCommands
+ * ----------------------------
+ *   Reads and processes any commands requested by the user, in a loop.
+ *
+ */
 void readCommands() {
 	resetUser();
 	resetGroup();
@@ -116,12 +153,22 @@ void readCommands() {
 	}
 }
 
+/*
+ * Function: readCommands
+ * ----------------------------
+ *   Prepares to close the client session.
+ *
+ */
 void exitClientSession() {
 	fprintf(stdout, "Terminating user application.\n");
 	resetUser();
 	resetGroup();
 	deleteSockets();
 }
+
+/*
+ * Main Function:
+*/
 
 int main(int argc, char *argv[]) {
 	parseArgs(argc, argv);
