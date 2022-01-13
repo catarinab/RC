@@ -238,7 +238,7 @@ void glm() {
         memset(buffer, 0, MAX_INPUT_SIZE);
         if (nGroups > 0) {
             for (int i = 1; i <= nGroups; i++) {
-                if (i < 10) sprintf(gid, "0%d", i);
+                if (i < 9) sprintf(gid, "0%d", i);
                 else sprintf(gid, "%d", i);
                 sprintf(pathname, "GROUPS/%s/%s.txt", gid, args[0]);
                 if (access(pathname, F_OK) != 0) continue;
