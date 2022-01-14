@@ -226,13 +226,16 @@ char * movePointer(char *table, int tableSize , char *pointer, int *totalShifts,
 void ret() {
 	int numTokens, n, messageSize, fileSize, totalShifts = 0, bufferSize = MAX_INPUT_SIZE - 1, shift;
 	char args[3][MAX_INFO], command[MAX_COMMAND_SIZE], message[MAX_MESSAGE_SIZE];
-	char fileName[40] = "GROUPS/", *bufferPointer, *aux;
+	char fileName[40] = "RETRIEVED/", *bufferPointer, *aux;
 	FILE *ptr;
 
 	if (!(verifySession())) return;
 	if (stat(fileName, &st) == -1)
 		mkdir(fileName, 0777);
-	sprintf(fileName, "GROUPS/%s/", selectedGroup.gid);
+	sprintf(fileName, "RETRIEVED/GROUPS/", selectedGroup.gid);
+	if (stat(fileName, &st) == -1)
+		mkdir(fileName, 0777);
+	sprintf(fileName, "RETRIEVED/GROUPS/%s/", selectedGroup.gid);
 	if (stat(fileName, &st) == -1)
 		mkdir(fileName, 0777);
 
@@ -324,7 +327,7 @@ void ret() {
 				bufferPointer = movePointer(buffer, bufferSize, bufferPointer, &totalShifts, shift);
 				fileSize = atoi(args[1]);
 				memset(fileName, 0, MAX_INFO);
-				sprintf(fileName, "GROUPS/%s/%s", selectedGroup.gid, args[0]);
+				sprintf(fileName, "RETRIEVED/GROUPS/%s/%s", selectedGroup.gid, args[0]);
 				fprintf(stdout, " (associated with the file %s)", fileName);
 				if (!(ptr = fopen(fileName, "wb"))) {
 					fprintf(stderr, "error: Can't create the file %s.\n", fileName);
